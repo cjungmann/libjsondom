@@ -1,0 +1,20 @@
+[
+   {
+      string : "This is a string."
+   }
+   ,
+   {
+      integer : 1,
+      true : true,
+      false : false,
+      null : null,
+      string : "This is a string."
+   }
+   ,
+   "super long value to test how flexible_read function works reading very long strings.",
+   true,
+   { "one" : 1, two : 2, three : 3 },
+   false,
+   [ 1, 2, 3.01 ],
+   null
+]
