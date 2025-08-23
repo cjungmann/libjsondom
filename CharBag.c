@@ -1,3 +1,5 @@
+/** @file CharBag.c */
+
 #include "CharBag.h"
 
 #include <assert.h>
@@ -5,6 +7,14 @@
 #include <stdlib.h> // malloc/free
 
 
+/**
+ * @brief Prepares a CharBag for use.
+ *
+ * Initializes unintialized memory.  Does not attempt to free
+ * non-NULL members.
+ *
+ * @param[in,out] *charBag  Uninitialized ::CharBag instance
+ */
 void initialize_CharBag(CharBag *charBag)
 {
    assert(charBag);
@@ -12,6 +22,14 @@ void initialize_CharBag(CharBag *charBag)
    charBag->curLeaf = &charBag->rootLeaf;
 }
 
+/**
+ * @brief Add one character to the collection.
+ *
+ * @param[in] *charBag      CharBag instance accepting characters
+ * @param[in] char_to_save  new character to save
+ * @returns true for success, false for failure.  Failure will usually
+ *          be a memory problem.
+ */
 bool add_char_to_bag(CharBag *charBag, char char_to_save)
 {
    assert(charBag);
@@ -42,6 +60,16 @@ bool add_char_to_bag(CharBag *charBag, char char_to_save)
    return retval;
 }
 
+/**
+ * @brief Allocates single buffer to hold complete character collection.
+ *
+ * @param[in] *charBag       Character collection from which the new string
+ *                           will be created and copied.
+ * @param[out] **string_out  Pointer to address where the new string will
+ *                           be returned.
+ * @return true if @p string_out points to a new string, false if there is
+ *         not enough memory to contain the characters.
+ */
 bool char_bag_to_string(CharBag *charBag, char **string_out)
 {
    assert(charBag);
@@ -88,6 +116,15 @@ bool char_bag_to_string(CharBag *charBag, char **string_out)
    return retval;
 }
 
+/**
+ * @brief Deleted allocated memory of an initialized #CharBag.
+ *
+ * Recursively frees allocated memory after freeing any children.
+ * Be careful not to call this function on an uninitiated #CharBag
+ * whose pointer members will have nonsense addresses.
+ *
+ * @param[in] *charBag   pointer to redundant initialized #CharBag.
+ */
 void char_bag_cleanup(CharBag *charBag)
 {
    assert(charBag);
