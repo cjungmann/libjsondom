@@ -9,6 +9,7 @@
 
 #include <stdbool.h>
 
+/** CharBagLeaf buffer size */
 #define CB_LEAF_SIZE 50
 
 /** Simplified type */
@@ -35,9 +36,15 @@ struct CharBag_s {
    CharBagLeaf *curLeaf;    ///< Last leaf into which new characters are stored
 };
 
+/**
+ * @ingroup AllFunctions
+ * @defgroup CharBagFunctions Functions that use CharBag character sinks
+ * @{
+ */
 void initialize_CharBag(CharBag *charBag);
 bool add_char_to_bag(CharBag *charBag, char char_to_save);
 bool char_bag_to_string(CharBag *charBag, char **string_out);
 void char_bag_cleanup(CharBag *charBag);
+/** @} */
 
 #endif
