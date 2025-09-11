@@ -1,3 +1,5 @@
+/** @file JNode.c */
+
 #include <stdlib.h>   // malloc/free
 #include <string.h>   // memset
 #include <stdio.h>    // printf
@@ -5,6 +7,9 @@
 
 #include "JNode.h"
 
+/**
+ * @brief Array of type names aligned to #JDataType enumeration.
+ */
 const char* JNode_TypeLabels[] = {
    "null",
    "true",
@@ -19,10 +24,13 @@ const char* JNode_TypeLabels[] = {
 };
 
 /**
- * @brief Remove node from its surroundings
+ * @brief Remove a #JNode instance from its family.
  *
- * Remove links to @p arg, replacing them with links to appropriate
- * siblings to preserve the integrity of the "family" links.
+ * Update links to @b node from its siblings and parent nodes,
+ * replacing them with links to appropriate siblings.  Links to
+ * children of @b node will be left intact.
+ *
+ * @param node Pointer to JNode instance to be removed from its family.
  */
 void JNode_emancipate(JNode *node)
 {
@@ -47,7 +55,19 @@ void JNode_emancipate(JNode *node)
 }
 
 /**
- * @brief Incorporate @p adoptee node into children of @p parent.
+ * @brief
+ *    Incorporate @b adoptee node into children of @b parent.
+ * @details
+ *    The JNode @b adoptee will be added as a child of @b parent.
+ *    The #JNode::parent pointer of @b adoptee will be set to
+ *    @b parent.  Then, iff @b before is not NULL, @b adoptee will
+ *    be inserted into the child list of @b parent, otherwise
+ *    @b adoptee will be added after the last child of @b parent.
+ *
+ * @param adoptee   The JNode instance to be incorporated
+ * @param parent    The JNode instance to use as the parent of @b adoptee
+ * @param before    Optional JNode instance of a child of @b parent
+ *                  after which @b adoptee will be placed
  */
 void JNode_adopt(JNode *adoptee, JNode *parent, JNode *before)
 {
@@ -92,6 +112,24 @@ void JNode_adopt(JNode *adoptee, JNode *parent, JNode *before)
 }
 
 
+/**
+ * @brief
+ *    Returns a new JNode instance of type DT_NULL.
+ * @details
+ *    Uses @c malloc to create a new JNode instance, using
+ *    #JNode_adopt to incorporate the new node into an existing
+ *    family of nodes.
+ *
+ * @param new_node  Address of pointer to which the new JNode
+ *                  instance will be copied
+ * @param parent    The JNode instance to use as the parent of @b new_node
+ * @param before    Optional JNode instance of a child of @b parent
+ *                  after which @b new_node will be placed
+ *
+ * @return
+ *    True if successful
+ *    False if failed to get needed memory
+ */
 bool JNode_create(JNode **new_node, JNode *parent, JNode *before)
 {
    JNode *node = (JNode*)malloc(sizeof(JNode));
@@ -111,27 +149,43 @@ bool JNode_create(JNode **new_node, JNode *parent, JNode *before)
    return false;
 }
 
+/**
+ * @brief
+ *    Deletes JNode instance @b node after deleting everything
+ *    to which it points.
+ * @details
+ *    Recursively deletes children, then siblings of @b node, then
+ *    uses @c free to delete its payload (if appropriate) and finally,
+ *    itself.
+ *
+ * @param node   Instance to be deleted after its pointers are freed.
+ *
+ * @warning
+ *    Use with care: JNode_destroy clears the JNode pointer in the
+ *    calling function.  Avoid attempting to free the memory twice.
+ */
 void JNode_destroy(JNode **node)
 {
-   // The child will destroy siblings, so we won't have to:
-   if ((*node)->firstChild)
-      JNode_destroy(&(*node)->firstChild);
+   if (*node)
+   {
+      // The child will destroy siblings, so we won't have to:
+      if ((*node)->firstChild)
+         JNode_destroy(&(*node)->firstChild);
 
-   if ((*node)->nextSibling)
-      JNode_destroy(&(*node)->nextSibling);
+      if ((*node)->nextSibling)
+         JNode_destroy(&(*node)->nextSibling);
 
-   if ((*node)->payload)
-      free((void*)(*node)->payload);
+      if ((*node)->payload)
+         free((void*)(*node)->payload);
 
-   free(*node);
-   *node = NULL;
+      free(*node);
+      *node = NULL;
+   }
 }
 
 /**
- * @dgroup JNode_setters Functions that change the node values and types.
- * @{
+ * @brief Intelligently free memory of payload member
  */
-
 bool JNode_discard_payload(JNode *node)
 {
    if (node->payload)
@@ -143,6 +197,11 @@ bool JNode_discard_payload(JNode *node)
    return true;
 }
 
+/**
+ * @brief Safely converts an initialized JNode of any type to a DT_NULL JNode.
+ * @param node   JNode to be converted
+ * @return true for success, false for failure
+ */
 bool JNode_set_null(JNode *node)
 {
    JNode_discard_payload(node);
@@ -150,6 +209,11 @@ bool JNode_set_null(JNode *node)
    return true;
 }
 
+/**
+ * @brief Safely converts an initialized JNode of any type to a DT_TRUE JNode.
+ * @param node   JNode to be converted
+ * @return true for success, false for failure
+ */
 bool JNode_set_true(JNode *node)
 {
    JNode_discard_payload(node);
@@ -157,6 +221,11 @@ bool JNode_set_true(JNode *node)
    return true;
 }
 
+/**
+ * @brief Safely converts an initialized JNode of any type to a DT_FALSE JNode.
+ * @param node   JNode to be converted
+ * @return true for success, false for failure
+ */
 bool JNode_set_false(JNode *node)
 {
    JNode_discard_payload(node);
@@ -164,6 +233,12 @@ bool JNode_set_false(JNode *node)
    return true;
 }
 
+/**
+ * @brief Safely converts an initialized JNode of any type to a DT_INTEGER JNode.
+ * @param node   JNode to be converted
+ * @param value  value to be set in the payload
+ * @return true for success, false for failure
+ */
 bool JNode_set_integer(JNode *node, long value)
 {
    JNode_discard_payload(node);
@@ -179,6 +254,12 @@ bool JNode_set_integer(JNode *node, long value)
    return false;
 }
 
+/**
+ * @brief Safely converts an initialized JNode of any type to a DT_FLOAT JNode.
+ * @param node   JNode to be converted
+ * @param value  value to be set in the payload
+ * @return true for success, false for failure
+ */
 bool JNode_set_float(JNode *node, double value)
 {
    JNode_discard_payload(node);
@@ -259,6 +340,11 @@ bool JNode_make_null_property(JNode *node, const char *label)
    return false;
 }
 
+/**
+ * @brief Safely converts an initialized JNode of any type to an empty DT_ARRAY JNode.
+ * @param node   JNode to be converted
+ * @return true for success, false for failure
+ */
 bool JNode_make_array(JNode *node)
 {
    JNode_discard_payload(node);
@@ -267,6 +353,13 @@ bool JNode_make_array(JNode *node)
    return true;
 }
 
+/**
+ * @brief Add an initialized JNode into an existing JNode array
+ * @param array           Array into which the new JNode is to be inserted
+ * @param new_element     element to be inserted
+ * @param element_before  if not NULL, the new element will be placed before this element.
+ * @return True for success, false for failure
+ */
 bool JNode_array_insert_element(JNode *array, JNode *new_element, JNode *element_before)
 {
    assert(array->type == DT_ARRAY);
@@ -274,6 +367,11 @@ bool JNode_array_insert_element(JNode *array, JNode *new_element, JNode *element
    return true;
 }
 
+/**
+ * @brief Safely converts an initialized JNode of any type to an empty DT_OBJECT JNode.
+ * @param node   JNode to be converted
+ * @return true for success, false for failure
+ */
 bool JNode_make_object(JNode *node)
 {
    JNode_discard_payload(node);
@@ -282,8 +380,12 @@ bool JNode_make_object(JNode *node)
    return true;
 }
 
-/** @} JNode_setters */
-
+/**
+ * @brief
+ *    Array of pointers to JNode printer functions
+ * @details
+ *    This array of pointers is aligned to enum #JDataType.
+ **/
 JNode_printer jNode_printers[] = {
    JNode_print_null,
    JNode_print_true,
@@ -297,10 +399,10 @@ JNode_printer jNode_printers[] = {
 };
 
 /**
- * @defgroup JNode_printers Functions for function pointer array
- * @{
+ * @brief DT_NULL JNode printing function for jNode_printers array
+ * @param node   JNode to be printed
+ * @param indent multiple of indents to print before value
  */
-
 void JNode_print_null(const JNode *node, int indent)
 {
    assert(node && node->type==DT_NULL);
@@ -310,6 +412,11 @@ void JNode_print_null(const JNode *node, int indent)
       printf("\n%*cnull", indent, ' ');
 }
 
+/**
+ * @brief DT_TRUE JNode printing function for jNode_printers array
+ * @param node   JNode to be printed
+ * @param indent multiple of indents to print before value
+ */
 void JNode_print_true(const JNode *node, int indent)
 {
    assert(node && node->type==DT_TRUE);
@@ -319,6 +426,11 @@ void JNode_print_true(const JNode *node, int indent)
       printf("\n%*ctrue", indent, ' ');
 }
 
+/**
+ * @brief DT_FALSE JNode printing function for jNode_printers array
+ * @param node   JNode to be printed
+ * @param indent multiple of indents to print before value
+ */
 void JNode_print_false(const JNode *node, int indent)
 {
    assert(node && node->type==DT_FALSE);
@@ -328,6 +440,11 @@ void JNode_print_false(const JNode *node, int indent)
       printf("\n%*cfalse", indent, ' ');
 }
 
+/**
+ * @brief DT_STRING JNode printing function for jNode_printers array
+ * @param node   JNode to be printed
+ * @param indent multiple of indents to print before value
+ */
 void JNode_print_string(const JNode *node, int indent)
 {
    assert(node && node->type==DT_STRING);
@@ -337,6 +454,11 @@ void JNode_print_string(const JNode *node, int indent)
       printf("\n%*c\"%s\"", indent, ' ', (char*)node->payload);
 }
 
+/**
+ * @brief DT_INTEGER JNode printing function for jNode_printers array
+ * @param node   JNode to be printed
+ * @param indent multiple of indents to print before value
+ */
 void JNode_print_integer(const JNode *node, int indent)
 {
    assert(node && node->type==DT_INTEGER);
@@ -346,6 +468,11 @@ void JNode_print_integer(const JNode *node, int indent)
       printf("\n%*c%ld", indent, ' ', *(long*)node->payload);
 }
 
+/**
+ * @brief DT_FLOAT JNode printing function for jNode_printers array
+ * @param node   JNode to be printed
+ * @param indent multiple of indents to print before value
+ */
 void JNode_print_float(const JNode *node, int indent)
 {
    assert(node && node->type==DT_FLOAT);
@@ -355,6 +482,12 @@ void JNode_print_float(const JNode *node, int indent)
       printf("\n%*c%f", indent, ' ', *(double*)node->payload);
 }
 
+/**
+ * @brief DT_ARRAY JNode printing function for jNode_printers array
+ * @details Recursively-prints child nodes with incremented indent.
+ * @param node   JNode to be printed
+ * @param indent multiple of indents to print before value
+ */
 void JNode_print_array(const JNode *node, int indent)
 {
    assert(node && node->type==DT_ARRAY);
@@ -384,6 +517,11 @@ void JNode_print_array(const JNode *node, int indent)
       printf("\n%*c]", indent, ' ');
 }
 
+/**
+ * @brief DT_PROPERTY JNode printing function for jNode_printers array
+ * @param node   JNode to be printed
+ * @param indent multiple of indents to print before value
+ */
 void JNode_print_property(const JNode *node, int indent)
 {
    assert(node && node->type==DT_PROPERTY);
@@ -410,6 +548,12 @@ void JNode_print_property(const JNode *node, int indent)
    }
 }
 
+/**
+ * @brief DT_OBJECT JNode printing function for jNode_printers array
+ * @details Recursively-prints child nodes with incremented indent.
+ * @param node   JNode to be printed
+ * @param indent multiple of indents to print before value
+ */
 void JNode_print_object(const JNode *node, int indent)
 {
    assert(node && node->type==DT_OBJECT);
@@ -439,6 +583,9 @@ void JNode_print_object(const JNode *node, int indent)
       printf("\n%*c}", indent, ' ');
 }
 
+/**
+ * @brief Recursive function prints tree to stdout
+ */
 void JNode_serialize(const JNode *node, int indent)
 {
    (*jNode_printers[node->type])(node, indent);
@@ -446,7 +593,6 @@ void JNode_serialize(const JNode *node, int indent)
 }
 
 /** @} JNode_printers */
-
 
 
 void JNode_print(const JNode *node, int indent)
