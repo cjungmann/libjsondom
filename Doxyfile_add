@@ -1,0 +1,3 @@
+# Changes from default for Doxyfile:
+WARN_FORMAT = "[32;1m$file:$line: $text[39;22m"
+GENERATE_TREEVIEW = YES
