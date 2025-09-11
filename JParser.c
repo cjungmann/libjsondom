@@ -1,3 +1,5 @@
+/** @file JParser.c */
+
 // Enable usage of dprintf:
 #define _POSIX_C_SOURCE 200809L
 #include <stdio.h>    // dprintf
@@ -12,21 +14,30 @@
 #include "JParser.h"
 #include "JReadString.h"
 
+/** Implementation of CollectionTools_s::Is_End_Char when processing an array */
 bool Array_IsEndChar(char chr) { return chr == ']'; }
+/** Implementation of CollectionTools_s::Coerce_type when processing an array */
 bool Array_CoerceType(JNode *node) { return JNode_make_array(node); }
+/** Implementation of CollectionTools_s::ReadMember when processing an array */
 bool Array_ReadMember(int fh, JNode *parent, JNode **new_node, char first_char)
 {
    return JParser(fh, parent, new_node, first_char);
 }
 
+/**
+ * @brief Instance of CollectionTools_s to use when parsing an array
+ */
 CollectionTools arrayTools = {
    Array_IsEndChar,
    Array_CoerceType,
    Array_ReadMember
 };
 
+/** Implementation of CollectionTools_s::Is_End_Char when processing an object */
 bool Object_IsEndChar(char chr) { return chr == '}'; }
+/** Implementation of CollectionTools_s::Coerce_type when processing an object */
 bool Object_CoerceType(JNode *node) { return JNode_make_object(node); }
+/** Implementation of CollectionTools_s::ReadMember when processing an object */
 bool Object_ReadMember(int fh, JNode *parent, JNode **new_node, char first_char)
 {
    bool retval = false;
@@ -87,6 +98,9 @@ bool Object_ReadMember(int fh, JNode *parent, JNode **new_node, char first_char)
    return retval;
 }
 
+/**
+ * @brief Instance of CollectionTools_s to use when parsing an object
+ */
 CollectionTools objectTools = {
    Object_IsEndChar,
    Object_CoerceType,
