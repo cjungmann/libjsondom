@@ -25,9 +25,26 @@ typedef bool (*Read_Member)(int fh, JNode *parent, JNode **new_node, char first_
  *    makes the code easier to understand.
  */
 struct CollectionTools_s {
-   Is_End_Char    is_end_char;
-   Coerce_Type    coerce_type;
-   Read_Member    read_member;
+   Is_End_Char    is_end_char; /**<
+                                * @brief
+                                *    Pointer to function that tests if
+                                *    a given character signals the end
+                                *    of the current collection
+                                */
+
+   Coerce_Type    coerce_type; /**<
+                                * @brief
+                                *    Pointer to function that will be
+                                *    used to convert a generic JNode
+                                *    into the specific JNode
+                                *    collection type required
+                                */
+   Read_Member    read_member; /**<
+                                * @brief
+                                *    Pointer to function that will
+                                *    create the appropriate members
+                                *    for the current collection type
+                                */
 };
 
 
