@@ -1,7 +1,8 @@
 /** @file JParser.c */
 
-// Enable usage of dprintf:
+/** Enable usage of dprintf: */
 #define _POSIX_C_SOURCE 200809L
+
 #include <stdio.h>    // dprintf
 #include <stdlib.h>   // malloc/free
 #include <unistd.h>   // open/read
@@ -159,17 +160,19 @@ bool parse_collection(int fh, JNode *parent, CollectionTools *tools, JNode **nod
    return retval;
 }
 
-bool parse_object(int fh, JNode *parent, JNode **node)
-{
-   return parse_collection(fh, parent, &objectTools, node);
-}
 
-bool parse_array(int fh, JNode *parent, JNode **node)
-{
-   return parse_collection(fh, parent, &arrayTools, node);
-}
-
-
+/**
+ * @brief Create a JNode tree from a JSON document string.
+ * @details
+ *    Reads directly from a stream to create a Document Object
+ *    Model (DOM) of a JSON document.
+ *
+ * @param fh          Handle to an open JSON file
+ * @param parent      JNode under which new JNodes will be inserted
+ * @param node        pointer to address of the newly-created JNode
+ * @param first_char  Character that introduces the current string
+ * @return True if successful, false if failed
+ */
 bool JParser(int fh, JNode *parent, JNode **node, char first_char)
 {
    bool retval = true;
@@ -191,7 +194,7 @@ bool JParser(int fh, JNode *parent, JNode **node, char first_char)
    switch(chr)
    {
       case '[':
-         if (!parse_array(fh, parent, &new_node))
+         if (!parse_collection(fh, parent, &arrayTools, &new_node))
          {
             retval = false;
             goto early_exit;
@@ -199,7 +202,7 @@ bool JParser(int fh, JNode *parent, JNode **node, char first_char)
          break;
 
       case '{':
-         if (!parse_object(fh, parent, &new_node))
+         if (!parse_collection(fh, parent, &objectTools, &new_node))
          {
             retval = false;
             goto early_exit;
