@@ -7,6 +7,7 @@
 #define JMODEL_H
 
 #include <stdbool.h>
+#include <stddef.h>   // for NULL definition
 
 /**
  * @brief Defined #JNode instance types
@@ -35,7 +36,7 @@ typedef struct JNode_s JNode;
 /** typedef for destructor function pointer array */
 typedef void (*JNode_payload_dtor)(JNode *node);
 /** typedef for printer function pointer array */
-typedef void(*JNode_printer)(const JNode *node, int indent);
+typedef void (*JNode_printer)(const JNode *node, int indent);
 
 
 // An item is a member of a collection, array or object
@@ -43,7 +44,7 @@ typedef void(*JNode_printer)(const JNode *node, int indent);
 /**
  * @brief Memory representation of a JSON data element, including family links.
  *
- * The #JNode instance is mostly links to other #Jnode instances, designed
+ * The #JNode instance is mostly links to other #JNode instances, designed
  * to allow moving between nodes to specific relations.
  *
  * The #payload member is allocated separately according to the #JDataType
