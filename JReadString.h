@@ -1,9 +1,14 @@
+/** @file JReadString.h */
+
 #ifndef JREADSTRING_H
 #define JREADSTRING_H
 
 #include <stdbool.h>
 
+/** Typedef of RSHandle_s struct */
 typedef struct RSHandle_s RSHandle;
+
+/** Function typedef for member of #RSHandle_s struct */
 typedef bool(*RSEndCheck)(char chr);
 
 /**
