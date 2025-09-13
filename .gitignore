@@ -2,3 +2,8 @@ CharBag
 JNode
 JParser
 JReadString
+*.a
+*.o
+*.so
+html
+latex
