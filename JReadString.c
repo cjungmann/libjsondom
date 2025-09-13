@@ -1,22 +1,39 @@
+/** @file JReadString.c */
+
 #include "JReadString.h"
 #include "CharBag.h"
 #include <stdlib.h>    // malloc/free
 #include <unistd.h>    // read
 #include <string.h>    // strchr
+#include <ctype.h>    // isspace
 #include <assert.h>
 
 
 
+/**
+ * @brief Implementation of #RSEndCheck to use for a quoted string
+ */
 bool end_check_for_quoted(char chr)
 {
    return chr=='"';
 }
 
+/**
+ * @brief Implementation of #RSEndCheck to use for an unquoted string
+ */
 bool end_check_for_unquoted(char chr)
 {
    return isspace(chr) || (strchr(",]}", chr) != NULL);
 }
 
+/**
+ * @brief
+ *    Prepare an uninitialized #RSHandle memory block
+ *    to be used to read the next string in a stream
+ * @param handle     Pointer to uninitialized RSHandle memory
+ * @param firstChar  An already-read character that is the
+ *                   first of the current string
+ */
 void ReadStringInit(RSHandle *handle, char firstChar)
 {
    assert(handle);
@@ -29,6 +46,12 @@ void ReadStringInit(RSHandle *handle, char firstChar)
       handle->end_check = end_check_for_unquoted;
 }
 
+/**
+ * @brief Free all memory held by @b handle, then
+ *        setting the pointers to NULL.
+ * @param handle   The RSHandle object whose held memory
+ *                 is to be freed
+ */
 void ReadStringDestroy(RSHandle *handle)
 {
    assert(handle);
@@ -39,6 +62,15 @@ void ReadStringDestroy(RSHandle *handle)
    }
 }
 
+/**
+ * @brief
+ *    Allows another function to take ownership
+ *    of the string value by returning it and
+ *    setting the pointer to it to NULL
+ * @param handle   RSHandle that has collected a
+ *                 string value
+ * @return Pointer to collected string value
+ */
 const char *StealReadString(RSHandle *handle)
 {
    assert(handle);
@@ -47,6 +79,26 @@ const char *StealReadString(RSHandle *handle)
    return retval;
 }
 
+/**
+ * @brief
+ *    Read the rest of the current string into a memory block.
+ * @details
+ *    From the current location in the file, collect the
+ *    characters that constitute the current string into
+ *    a single memory block.
+ *
+ *    The end of unquoted strings is often indicated when
+ *    the first character of the next string is recognized.
+ *    JReadString will save the character that signaled the
+ *    end of the current string in case it needs to be used
+ *    as the beginning of the next string.  This allows for
+ *    orderly progress on a single reading pass through the
+ *    JSON contents.
+ *
+ * @param fh      handle to an open JSON document file
+ * @param handle  pointer to an empty initialized RSHandle
+ * @return True for success, false for failure
+ */
 bool JReadString(int fh, RSHandle *handle)
 {
    bool retval = false;
@@ -113,7 +165,6 @@ bool JReadString(int fh, RSHandle *handle)
 #include <fcntl.h>    // open/close
 #include <errno.h>    // errno
 #include <string.h>   // strerror()
-#include <ctype.h>    // isspace
 
 #define TFILE "ReadString_tempfile"
 
