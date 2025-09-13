@@ -592,20 +592,6 @@ void JNode_serialize(const JNode *node, int indent)
    printf("\n");
 }
 
-/** @} JNode_printers */
-
-
-void JNode_print(const JNode *node, int indent)
-{
-   printf("%*c%s\n", indent, ' ', JNode_TypeLabels[node->type]);
-   const JNode *child = node->firstChild;
-   while (child)
-   {
-      JNode_print(child, indent+4);
-      child = child->nextSibling;
-   }
-}
-
 #ifdef JNODE_MAIN
 
 void populate_simple_array(JNode *parent)
@@ -649,22 +635,6 @@ void populate_simple_object(JNode *parent)
    JNode_set_float(child->lastChild, 3.141592653589);
 }
 
-void test_simple_array(void)
-{
-   JNode *root;
-   if (JNode_create(&root, NULL, NULL))
-   {
-      JNode_make_array(root);
-      populate_simple_array(root);
-
-      JNode_print(root, 0);
-
-      JNode_serialize(root, 0);
-
-      JNode_destroy(&root);
-   }
-}
-
 void test_array_of_arrays(void)
 {
    JNode *root;
@@ -696,7 +666,6 @@ void test_array_of_arrays(void)
 
 int main(int argc, const char **argv)
 {
-   // test_simple_array();
    test_array_of_arrays();
    return 0;
 }
