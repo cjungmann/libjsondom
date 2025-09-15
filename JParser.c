@@ -5,15 +5,30 @@
 
 #include <stdio.h>    // dprintf
 #include <stdlib.h>   // malloc/free
-#include <unistd.h>   // open/read
+#include <unistd.h>   // open/read/lseek
 #include <ctype.h>    // isspace
-#include <string.h>   // memset
+#include <string.h>   // strerror
 #include <fcntl.h>    // open()
 #include <errno.h>    // errno for open()
+#include <stdarg.h>   // for va_start, etc, for vprintf
 #include <assert.h>
 
 #include "JParser.h"
 #include "JReadString.h"
+
+bool Standard_Report_Error(int source_fh, const char *format, ...)
+{
+   off_t offset = lseek(source_fh, 0, SEEK_CUR);
+   printf("at %ld, ", offset);
+   va_list pargs;
+   va_start(pargs, format);
+   vprintf(format, pargs);
+   va_end(pargs);
+   printf("\n");
+   return true;   // default exit after any error
+}
+
+Error_Reporter Report_Error = Standard_Report_Error;
 
 /** Implementation of CollectionTools_s::Is_End_Char when processing an array */
 bool Array_IsEndChar(char chr) { return chr == ']'; }
@@ -44,8 +59,7 @@ bool Object_ReadMember(int fh, JNode *parent, JNode **new_node, char first_char)
    bool retval = false;
 
    // Read the string that's queued-up:
-   RSHandle rsh;
-   memset(&rsh, 0, sizeof(RSHandle));
+   RSHandle rsh = { 0 };
    ReadStringInit(&rsh, first_char);
    if (JReadString(fh, &rsh))
    {
@@ -146,8 +160,11 @@ bool parse_collection(int fh, JNode *parent, CollectionTools *tools, JNode **nod
                JNode *new_el = NULL;
                if ( ! (*tools->read_member)(fh, new_node, &new_el, chr))
                {
-                  printf("Error parsing value starting with '%c' (%d).\n", chr, chr);
-                  break;
+                  if ((*Report_Error)(
+                         fh,
+                         "error parsing value starting with '%c' (%d).",
+                         chr, chr))
+                     break;
                }
             }
          }
@@ -188,8 +205,7 @@ bool JParser(int fh, JNode *parent, JNode **node, char first_char)
 
    JNode *new_node = NULL;
 
-   RSHandle rsh;
-   memset(&rsh, 0, sizeof(RSHandle));
+   RSHandle rsh = { 0 };
 
    switch(chr)
    {
@@ -236,7 +252,9 @@ bool JParser(int fh, JNode *parent, JNode **node, char first_char)
                            JNode_set_float(temp_node, tval);
                         else
                         {
-                           printf("Error converting '%s' to a double (%s).\n",
+                           (*Report_Error)(
+                                  fh,
+                                  "Error converting '%s' to a double (%s).",
                                   rsh.string, strerror(errno));
                            retval = false;
                         }
@@ -248,8 +266,10 @@ bool JParser(int fh, JNode *parent, JNode **node, char first_char)
                            JNode_set_integer(temp_node, tval);
                         else
                         {
-                           printf("Error converting '%s' to a long (%s).\n",
-                                  rsh.string, strerror(errno));
+                           (*Report_Error)(
+                              fh,
+                              "Error converting '%s' to a long (%s).",
+                              rsh.string, strerror(errno));
                            retval = false;
                         }
                      }

@@ -3,6 +3,28 @@
 
 #include "JNode.h"
 
+/**
+ * Function type for overriding standard error reporter
+ *
+ * @return True to exit, false to continue
+ * */
+typedef bool (*Error_Reporter)(
+   int source_fh,       /**<
+                         * @brief handle to JSON document source
+                         * @details
+                         *    Can be used to determine the location
+                         *    of the error in the source file
+                         */
+   const char *format,  ///< printf-style format string
+   ...                  ///< arguments to fill conversion specification
+                        ///< of the format string
+   );
+
+/** Default implementation of Error_Reporter */
+bool Standard_Report_Error(int source_fh, const char *format, ...);
+
+
+/** typedef of CollectionTools_s */
 typedef struct CollectionTools_s CollectionTools;
 
 /** typedef member of CollectionTools */
