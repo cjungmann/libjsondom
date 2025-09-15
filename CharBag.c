@@ -34,26 +34,31 @@ bool add_char_to_bag(CharBag *charBag, char char_to_save)
 {
    assert(charBag);
    bool retval = true;
-   CharBagLeaf *cbLeaf = charBag->curLeaf;
 
-   // Make new leaf if current leaf is full
-   if (cbLeaf->index_next_char >= CB_LEAF_SIZE)
+   // leaf into which next char will be saved
+   CharBagLeaf *leafForSaving = charBag->curLeaf;
+
+   // if the leafForSaving is full, attach an empty new leaf for use:
+   if (leafForSaving->index_next_char >= CB_LEAF_SIZE)
    {
-      cbLeaf->next = (CharBagLeaf*)malloc(sizeof(CharBagLeaf));
-      if (!cbLeaf->next)
+      leafForSaving->next = (CharBagLeaf*)malloc(sizeof(CharBagLeaf));
+      if (leafForSaving->next)
+      {
+         memset(leafForSaving->next, 0, sizeof(CharBagLeaf));
+
+         // Update pointers in the leaf and the charBag:
+         leafForSaving = leafForSaving->next;
+         charBag->curLeaf = leafForSaving;
+      }
+      else
       {
          retval = false;
          goto early_exit;
       }
-
-      // Update pointers in the leaf and the charBag:
-      cbLeaf = cbLeaf->next;
-      memset(cbLeaf, 0, sizeof(CharBagLeaf));
-      charBag->curLeaf = cbLeaf;
    }
 
-   cbLeaf->buff[cbLeaf->index_next_char] = char_to_save;
-   ++cbLeaf->index_next_char;
+   leafForSaving->buff[leafForSaving->index_next_char] = char_to_save;
+   ++leafForSaving->index_next_char;
 
   early_exit:
 
@@ -129,22 +134,16 @@ void char_bag_cleanup(CharBag *charBag)
 {
    assert(charBag);
 
-   CharBagLeaf *cbLeaf = &charBag->rootLeaf;
-   if (cbLeaf->next)
+   // Free all malloced leaves
+   while (charBag->rootLeaf.next)
    {
-      // Assume charBag and the root CharBagLeaf is stack-allocated.
-      // Delete malloced leaves, then initialize the root leaf and
-      // LeafBag as empty.
-      CharBagLeaf *toDelete = cbLeaf->next;
-      memset(charBag, 0, sizeof(CharBag));
+      CharBagLeaf *leafToDelete = charBag->rootLeaf.next;
+      charBag->rootLeaf.next = leafToDelete->next;
 
-      // Loop to free all child leaves
-      while (toDelete)
-      {
-         CharBagLeaf *holdNext = toDelete->next;
-         free((void*)toDelete);
-         toDelete = holdNext;
-      }
+      // optional memset before free to mark deleted leaves:
+      memset(leafToDelete, -1, sizeof(CharBagLeaf));
+
+      free((void*)leafToDelete);
    }
 }
 
