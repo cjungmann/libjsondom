@@ -19,7 +19,7 @@
 bool Standard_Report_Error(int source_fh, const char *format, ...)
 {
    off_t offset = lseek(source_fh, 0, SEEK_CUR);
-   printf("at %ld, ", offset);
+   printf("at file position %ld, ", offset);
    va_list pargs;
    va_start(pargs, format);
    vprintf(format, pargs);
@@ -35,9 +35,13 @@ bool Array_IsEndChar(char chr) { return chr == ']'; }
 /** Implementation of CollectionTools_s::Coerce_type when processing an array */
 bool Array_CoerceType(JNode *node) { return JNode_make_array(node); }
 /** Implementation of CollectionTools_s::ReadMember when processing an array */
-bool Array_ReadMember(int fh, JNode *parent, JNode **new_node, char first_char)
+bool Array_ReadMember(int fh,
+                      JNode *parent,
+                      JNode **new_node,
+                      char first_char,
+                      char *end_signal)
 {
-   return JParser(fh, parent, new_node, first_char);
+   return JParser(fh, parent, new_node, first_char, end_signal);
 }
 
 /**
@@ -54,14 +58,28 @@ bool Object_IsEndChar(char chr) { return chr == '}'; }
 /** Implementation of CollectionTools_s::Coerce_type when processing an object */
 bool Object_CoerceType(JNode *node) { return JNode_make_object(node); }
 /** Implementation of CollectionTools_s::ReadMember when processing an object */
-bool Object_ReadMember(int fh, JNode *parent, JNode **new_node, char first_char)
+bool Object_ReadMember(int fh,
+                       JNode *parent,
+                       JNode **new_node,
+                       char first_char,
+                       char *end_signal
+   )
 {
    bool retval = false;
 
+   if (first_char != '"')
+   {
+      if ((*Report_Error)(
+             fh,
+             "error parsing object member: "
+             "labels must be enclosed in double-quotes."))
+         goto early_exit;
+   }
+
    // Read the string that's queued-up:
-   RSHandle rsh = { 0 };
-   ReadStringInit(&rsh, first_char);
-   if (JReadString(fh, &rsh))
+   RSHandle rsh_label = { 0 };
+   ReadStringInit(&rsh_label, first_char);
+   if (JReadString(fh, &rsh_label))
    {
       JNode *value_node = NULL;
       bool past_colon = false;
@@ -77,7 +95,8 @@ bool Object_ReadMember(int fh, JNode *parent, JNode **new_node, char first_char)
             past_colon = true;
          else if (past_colon)
          {
-            if (JParser(fh, NULL, &value_node, chr))
+            char temp_end_signal = 0;
+            if (JParser(fh, NULL, &value_node, chr, &temp_end_signal))
             {
                // We have the label string and value node,
                // so we can build the property now:
@@ -88,11 +107,14 @@ bool Object_ReadMember(int fh, JNode *parent, JNode **new_node, char first_char)
                   JNode *label_node = NULL;
                   if (JNode_create(&label_node, prop_node, NULL))
                   {
-                     JNode_take_string(label_node, StealReadString(&rsh));
+                     JNode_take_string(label_node, StealReadString(&rsh_label));
                      JNode_adopt(value_node, prop_node, NULL);
 
                      *new_node = prop_node;
                      retval = true;
+
+                     if (end_signal)
+                        *end_signal = temp_end_signal;
                   }
                   else
                      JNode_destroy(&prop_node);
@@ -103,12 +125,22 @@ bool Object_ReadMember(int fh, JNode *parent, JNode **new_node, char first_char)
             break;
          }
          else
+         {
+            // A non-colon character after label is an error
+            if ((*Report_Error)(
+                   fh,
+                   "error parsing object member: "
+                   "A colon is required after a member label."))
+               goto early_exit;
             break;
+         }
       } // while
 
-      // Safely delete if not already done
-      ReadStringDestroy(&rsh);
    } //  if (JReadString())
+
+  early_exit:
+   // delete in case retrieved string still attached
+   ReadStringDestroy(&rsh_label);
 
    return retval;
 }
@@ -137,7 +169,7 @@ bool parse_collection(int fh, JNode *parent, CollectionTools *tools, JNode **nod
    char chr;
 
    JNode *new_node = NULL;
-   if (JNode_create(&new_node, parent, NULL))
+   if (JNode_create(&new_node, NULL, NULL))
    {
       if ((*tools->coerce_type)(new_node))
       {
@@ -148,8 +180,6 @@ bool parse_collection(int fh, JNode *parent, CollectionTools *tools, JNode **nod
 
             if ((*tools->is_end_char)(chr))
             {
-               *node = new_node;
-               new_node = NULL;
                retval = true;
                break;
             }
@@ -157,8 +187,9 @@ bool parse_collection(int fh, JNode *parent, CollectionTools *tools, JNode **nod
                continue;
             else
             {
+               char end_char = '\0';
                JNode *new_el = NULL;
-               if ( ! (*tools->read_member)(fh, new_node, &new_el, chr))
+               if ( ! (*tools->read_member)(fh, new_node, &new_el, chr, &end_char))
                {
                   if ((*Report_Error)(
                          fh,
@@ -166,7 +197,21 @@ bool parse_collection(int fh, JNode *parent, CollectionTools *tools, JNode **nod
                          chr, chr))
                      break;
                }
+               if ((*tools->is_end_char)(end_char))
+               {
+                  retval = true;
+                  break;
+               }
             }
+         }
+
+         if (retval)
+         {
+            if (parent)
+               JNode_adopt(new_node, parent, NULL);
+
+            *node = new_node;
+            new_node = NULL;
          }
       }
    }
@@ -187,10 +232,17 @@ bool parse_collection(int fh, JNode *parent, CollectionTools *tools, JNode **nod
  * @param fh          Handle to an open JSON file
  * @param parent      JNode under which new JNodes will be inserted
  * @param node        pointer to address of the newly-created JNode
- * @param first_char  Character that introduces the current string
+ * @param first_char  character that introduces the current string
+ * @param end_signal  pointer to which the string-end-signalling
+ *                    character will be copied for later
+ *                    consideration.
  * @return True if successful, false if failed
  */
-bool JParser(int fh, JNode *parent, JNode **node, char first_char)
+bool JParser(int fh,
+             JNode *parent,
+             JNode **node,
+             char first_char,
+             char *end_signal)
 {
    bool retval = true;
 
@@ -229,6 +281,9 @@ bool JParser(int fh, JNode *parent, JNode **node, char first_char)
          ReadStringInit(&rsh, chr);
          if (JReadString(fh, &rsh))
          {
+            if (end_signal)
+               *end_signal = rsh.end_signal;
+
             JNode *temp_node;
             if (JNode_create(&temp_node, parent, NULL))
             {
