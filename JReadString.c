@@ -2,6 +2,7 @@
 
 #include "JReadString.h"
 #include "CharBag.h"
+#include "JParser.h"   // to access Report_Error function
 #include <stdlib.h>    // malloc/free
 #include <unistd.h>    // read
 #include <string.h>    // strchr
@@ -140,12 +141,24 @@ bool JReadString(int fh, RSHandle *handle)
          add_char_to_bag(&cbag, chr);
    }
 
-   if (handle->first_char != '"')
+   if (handle->first_char == '"')
    {
+      // The loop above SHOULD have found a closing double-quote
+      // and moved to cleanup label. Not finding the close quote
+      // implies an incomplete document.  Leave retval==false
+      // to terminate parsing.
+
+      (*Report_Error)(fh, "Unexpected end-of-file while reading a string");
+   }
+   else
+   {
+      // I don't know why we might get here, so I'm gonna do
+      // some testing in anticipation of removing this dead
+      // code.
       char *value;
       if (char_bag_to_string(&cbag, &value))
       {
-         handle->end_signal = -1;
+         // handle->end_signal = -1;
          handle->string = value;
          retval = true;
       }
