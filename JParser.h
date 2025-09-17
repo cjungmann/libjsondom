@@ -22,6 +22,7 @@ typedef bool (*Error_Reporter)(
 
 /** Default implementation of Error_Reporter */
 bool Standard_Report_Error(int source_fh, const char *format, ...);
+extern Error_Reporter Report_Error;
 
 
 /** typedef of CollectionTools_s */
@@ -32,7 +33,12 @@ typedef bool (*Is_End_Char)(char chr);
 /** typedef member of CollectionTools */
 typedef bool (*Coerce_Type)(JNode *node);
 /** typedef member of CollectionTools */
-typedef bool (*Read_Member)(int fh, JNode *parent, JNode **new_node, char first_char);
+typedef bool (*Read_Member)(int fh,
+                            JNode *parent,
+                            JNode **new_node,
+                            char first_char,
+                            char *signal_char
+   );
 
 /**
  * @brief Small collection of tools for parsing JSON data
@@ -73,7 +79,12 @@ struct CollectionTools_s {
 /**
  * @ingroup AllFunctions
  */
-bool JParser(int fh, JNode *parent, JNode **node, char first_char);
+bool JParser(int fh,
+             JNode *parent,
+             JNode **node,
+             char first_char,
+             char *signal_char
+   );
 
 
 #endif
