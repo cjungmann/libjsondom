@@ -50,7 +50,8 @@ bool Array_ReadMember(int fh,
 CollectionTools arrayTools = {
    Array_IsEndChar,
    Array_CoerceType,
-   Array_ReadMember
+   Array_ReadMember,
+   ']'
 };
 
 /** Implementation of CollectionTools_s::Is_End_Char when processing an object */
@@ -67,6 +68,9 @@ bool Object_ReadMember(int fh,
 {
    bool retval = false;
 
+   // Must be initialized before possible jump to early_exit label:
+   RSHandle rsh_label = { 0 };
+
    if (first_char != '"')
    {
       if ((*Report_Error)(
@@ -77,7 +81,6 @@ bool Object_ReadMember(int fh,
    }
 
    // Read the string that's queued-up:
-   RSHandle rsh_label = { 0 };
    ReadStringInit(&rsh_label, first_char);
    if (JReadString(fh, &rsh_label))
    {
@@ -151,7 +154,8 @@ bool Object_ReadMember(int fh,
 CollectionTools objectTools = {
    Object_IsEndChar,
    Object_CoerceType,
-   Object_ReadMember
+   Object_ReadMember,
+   '}'
 };
 
 /**
@@ -201,6 +205,19 @@ bool parse_collection(int fh, JNode *parent, CollectionTools *tools, JNode **nod
                {
                   retval = true;
                   break;
+               }
+               else if ((end_char=='"' && chr=='"')
+                        || end_char == '\0'
+                        || end_char == ','
+                        || isspace(end_char))
+                  continue;
+               else
+               {
+                  if ((*Report_Error)(
+                         fh,
+                         "expected a ',' or '%c' instead of '%c'.",
+                         tools->end_char, end_char))
+                     break;
                }
             }
          }
@@ -262,19 +279,21 @@ bool JParser(int fh,
    switch(chr)
    {
       case '[':
-         if (!parse_collection(fh, parent, &arrayTools, &new_node))
+         if (! parse_collection(fh, parent, &arrayTools, &new_node))
          {
             retval = false;
             goto early_exit;
          }
+
          break;
 
       case '{':
-         if (!parse_collection(fh, parent, &objectTools, &new_node))
+         if (! parse_collection(fh, parent, &objectTools, &new_node))
          {
             retval = false;
             goto early_exit;
          }
+
          break;
 
       default:
@@ -297,34 +316,34 @@ bool JParser(int fh,
                      JNode_set_true(temp_node);
                   else if ( 0 == strcmp(rsh.string, "false"))
                      JNode_set_false(temp_node);
-                  else // numbers
+                  else  // unquoted values, integer, float, or syntax-error
                   {
                      errno = 0;
-                     if (strchr(rsh.string, '.'))
-                     {
-                        double tval = strtod(rsh.string, NULL);
-                        if (errno == 0)
-                           JNode_set_float(temp_node, tval);
-                        else
-                        {
-                           (*Report_Error)(
-                                  fh,
-                                  "Error converting '%s' to a double (%s).",
-                                  rsh.string, strerror(errno));
-                           retval = false;
-                        }
-                     }
+                     double dvalue = 0.0;
+                     long lvalue = 0;
+
+                     // Float test first because a valid float decimal would
+                     // terminate an integer value
+                     char *endptr = NULL;
+                     if (strchr(rsh.string,'.'))
+                        dvalue = strtod(rsh.string, &endptr);
+
+                     if (endptr > rsh.string && errno==0)
+                        JNode_set_float(temp_node, dvalue);
                      else
                      {
-                        long tval = strtol(rsh.string, NULL, 10);
-                        if (errno == 0)
-                           JNode_set_integer(temp_node, tval);
+                        endptr = NULL;
+                        lvalue = strtol(rsh.string, &endptr, 0);
+                        if (endptr > rsh.string && errno==0)
+                           JNode_set_integer(temp_node, lvalue);
                         else
                         {
+                           // Neither a float nor an integer, it's a mistake
                            (*Report_Error)(
-                              fh,
-                              "Error converting '%s' to a long (%s).",
-                              rsh.string, strerror(errno));
+                                  fh,
+                                  "Unquoted values must be 'null', 'true', 'false', "
+                                  "a float or integer value."
+                              );
                            retval = false;
                         }
                      }
