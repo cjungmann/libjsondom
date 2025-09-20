@@ -73,6 +73,11 @@ struct CollectionTools_s {
                                 *    create the appropriate members
                                 *    for the current collection type
                                 */
+   char           end_char;    /**<
+                                * @brief
+                                *    Make this character available
+                                *    for error reporting
+                                */
 };
 
 
