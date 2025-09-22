@@ -1,0 +1,17 @@
+{
+   "name":"John Doe"
+   "address": {
+      "street" : "1234 Main Street",
+      "city"   : "Townsville",
+      "state"  : "AA",
+      "code"   : 23456,
+      "rented" : false
+   },
+   "education":[
+      "Peony Preschool",
+      "Echinacea Elementary",
+      "Marigold Middle School",
+      "Hydrangea High School",
+      "Camelia College"
+   ]
+}
