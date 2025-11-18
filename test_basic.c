@@ -6,6 +6,7 @@
 #include <sys/stat.h> // for stat()
 #include <errno.h>    // for errno
 #include <string.h>   // for strerror()
+#include <stdint.h>   // for INTMAX_MAX define/constant
 #include <stdbool.h>
 #include <alloca.h>
 #include <assert.h>
@@ -132,7 +133,7 @@ bool get_test_list(char **raw, const char*** index)
    return true;
 }
 
-bool test_file(const char *filename)
+bool parse_test_file(const char *filename)
 {
    bool retval = false;
 
@@ -147,7 +148,7 @@ bool test_file(const char *filename)
    if (fd>=0)
    {
       jd_Node *node;
-      if (jd_read(fd, &node))
+      if (jd_parse_file(fd, &node))
       {
          printf("Successfully parsed file!\n");
 
@@ -162,10 +163,52 @@ bool test_file(const char *filename)
    return retval;
 }
 
-
-int main(int argc, const char **argv)
+void display_node(const jd_Node *node, int indent)
 {
-   // Default indication: failure
+   const char *s_type = jd_id_name(node);
+   jd_Type t_type = jd_id_type(node);
+   printf("%*.*sType '%s' (%d)\n",
+          indent, indent, "",
+          s_type, t_type);
+}
+
+void test_node_tree(jd_Node *tree)
+{
+   printf("Got to the test_node_tree, baby.\n");
+   display_node(tree, 4);
+}
+
+
+bool test_individual_file(const char *filename)
+{
+   bool retval = false;
+
+   printf("\n\nAbout to open file \033[32;1m%s\033[39;22m.\n",
+          filename);
+
+   int fd = open(filename, O_RDONLY);
+   if (fd < 0)
+   {
+      printf("Failed to open file \033[33;31;1m%s\033[39;22m.\n",
+             filename);
+      retval = false;
+   }
+   else
+   {
+      jd_Node *node;
+      if (jd_parse_file(fd, &node))
+      {
+         test_node_tree(node);
+         jd_destroy(node);
+         retval = true;
+      }
+   }
+
+   return retval;
+}
+
+int process_list_file(void)
+{
    int retval = 0;
 
    char *raw = NULL;
@@ -180,9 +223,9 @@ int main(int argc, const char **argv)
       while (retval == 0 && *ptr)
       {
          if (**ptr != '#')
-            if ( ! test_file(*ptr))
+            if ( ! parse_test_file(*ptr))
             {
-               printf("Parsing \033[32;1m%s\033[39;22m failed.\n", *ptr);
+               printf("\033[31;1mFailed to parse \033[32;1m%s\033[31;1m.\033[39;22m\n", *ptr);
                printf("Press 'q' to quit, anyother key to continue testing.\n");
                int keypressed = getchar();
                if (keypressed=='q' || keypressed=='Q')
@@ -198,6 +241,81 @@ int main(int argc, const char **argv)
       free(raw);
       free((void*)index);
    }
+
+   return retval;
+}
+
+int run_arg_as_filename(const char *filepath)
+{
+   int retval = 0;
+
+   struct stat rstat = { 0 };
+   if (stat(filepath, &rstat))
+   {
+      printf("Failed to stat file '%s': %s.\n",
+             filepath,
+             strerror(errno));
+
+      retval = 1;
+   }
+   else
+   {
+      if (!test_individual_file(filepath))
+         retval = 1;
+   }
+
+   return retval;
+}
+
+void demo_stringify_integer(long val)
+{
+   jd_Node *node;
+   if (jd_make_integer_node(&node, val))
+   {
+      int len = jd_stringify_integer(node, NULL, 0);
+      if (len>0)
+      {
+         char *buff = (char*)malloc(len);
+         if (buff)
+         {
+            jd_stringify_integer(node, buff, len);
+            printf("Full stringify converts %ld to '%s'.\n",
+                   val, buff);
+
+            if (len > 1)
+            {
+               jd_stringify_integer(node, buff, len-1);
+               printf("Short buffer stringify converts %ld to '%s'.\n",
+                      val, buff);
+            }
+
+            free(buff);
+         }
+      }
+      jd_destroy(node);
+   }
+}
+
+void test_stringify_integer(void)
+{
+   demo_stringify_integer(1234);
+   demo_stringify_integer(-1234);
+   demo_stringify_integer(987654321);
+   demo_stringify_integer(INTMAX_MAX);
+}
+
+
+int main(int argc, const char **argv)
+{
+   int retval = 0;
+
+   test_stringify_integer();
+   return 0;
+
+   if (argc == 1)
+      retval = process_list_file();
+   else
+      retval = run_arg_as_filename(argv[1]);
 
    return retval;
 }
