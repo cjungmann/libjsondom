@@ -10,6 +10,32 @@
 #include <stddef.h>   // for NULL definition
 
 /**
+ * @brief
+ *    Integer error values for easier error reporting.
+ * @details
+ *    This is an error-handling alternative to the function
+ *    pointer solution used while parsing.  It is easier to
+ *    read or ignore according to development objectives.
+ *
+ *    This enumeration was created while developing stringify
+ *    functions that must fail gracefully since they're meant
+ *    to eventually  be used by the Bash builtin command.
+ */
+typedef enum JNodeError_e {
+   JNE_SUCCESS = 0,       ///< 0 is success, as per convention
+   JNE_FAILURE,           ///< generic unspecified error
+   JNE_NULL_NODE,         ///< Forget to pass a node pointer
+   JNE_INVALID_TYPE,      ///< Node type wrong for action to be taken
+   JNE_OUT_OF_MEMORY,     ///< Not enough memory to complete action (like assignment)
+   JNE_SMALL_BUFFER       ///< Buffer too small (or missing), especially for printing
+} JNodeError;
+
+/**
+ * @brief Global variable defined in Stringify.c
+ */
+extern JNodeError jn_error;
+
+/**
  * @brief Defined #JNode instance types
  *
  * These values not only identify the specific type of a given JNode
@@ -136,6 +162,14 @@ void JNode_print_array(const JNode *node, int indent);
 void JNode_print_property(const JNode *node, int indent);
 void JNode_print_object(const JNode *node, int indent);
 /** @} */
+
+int JNode_stringify_null(const JNode *node, char *buffer, int bufflen);
+int JNode_stringify_true(const JNode *node, char *buffer, int bufflen);
+int JNode_stringify_false(const JNode *node, char *buffer, int bufflen);
+int JNode_stringify_string(const JNode *node, char *buffer, int bufflen);
+int JNode_stringify_integer(const JNode *node, char *buffer, int bufflen);
+int JNode_stringify_float(const JNode *node, char *buffer, int bufflen);
+int JNode_stringify_property(const JNode *node, char *buffer, int bufflen);
 
 /**
  * @ingroup AllFunctions
