@@ -17,11 +17,21 @@ typedef enum jd_Type_e {
                      * and a value node
                      */
    JD_OBJECT        ///< collection of #JD_PROPERTY nodes
-   } jd_Type;
+} jd_Type;
+
+typedef enum jd_Relation_e {
+   JD_PARENT = 0,
+   JD_NEXT,
+   JD_PREVIOUS,
+   JD_FIRST,
+   JD_LAST
+} jd_Relation;
 
 
 bool jd_parse_file(int fh, jd_Node **new_tree);
 void jd_destroy(jd_Node *node);
+
+jd_Node* jd_get_relation(jd_Node *node, jd_Relation relation);
 
 jd_Node* parent(jd_Node *node);
 jd_Node* nextSibling(jd_Node *node);

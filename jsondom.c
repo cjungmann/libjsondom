@@ -49,6 +49,22 @@ EXPORT void jd_destroy(jd_Node *node)
 }
 
 /**
+ * @brief Get pointer to a relation
+ * @param node     Starting point
+ * @param relation relation direction to return
+ * @return Requested relation of starting node, otherwise
+ *         NULL if the relation is not represented.
+ */
+EXPORT jd_Node* jd_get_relation(jd_Node *node, jd_Relation relation)
+{
+   jd_Node *retval = NULL;
+   if (node && relation>=0 && relation<= JD_LAST)
+      retval = ((jd_Node**)node)[relation];
+
+   return retval;
+}
+
+/**
  * @brief returns parent of jd_Node
  * @param node   node from which to get the relative
  * @return pointer to relative, NULL if node or relative is NULL
