@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+declare BASE_URL="https://microsoftedge.github.io/Demos/json-dummy-data/"
+get_file()
+{
+    local fname="$1"
+    wget "${BASE_URL}$fname" -O "$fname"
+}
+
+if ! [ -d json_files ]; then
+    mkdir json_files
+    cd json_files
+    get_file "64KB.json"
+    get_file "64KB-min.json"
+    get_file "5MB.json"
+
+    get_file "missing-colon.json"
+    get_file "unterminated.json"
+    get_file "binary-data.json"
+fi
