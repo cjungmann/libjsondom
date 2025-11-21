@@ -1,0 +1,42 @@
+.de pt_JDataType
+.   cdef_start "enum" "jd_Type_e" {} ,
+.   cdef_arg JD_NULL
+.   cdef_arg JD_TRUE
+.   cdef_arg JD_FALSE
+.   cdef_arg JD_STRING
+.   cdef_arg JD_INTEGER
+.   cdef_arg JD_FLOAT
+.   cdef_arg JD_ARRAY
+.   cdef_arg JD_PROPERTY
+.   cdef_arg JD_OBJECT
+.   cdef_arg JD_TYPE_LIMIT
+.   cdef_end_stacked
+..
+.de pt_JNode
+.   cdef_start "struct" "JNode_s" {} ;
+.   cdef_arg JNode *parent
+.   cdef_arg JNode *nextSibling
+.   cdef_arg JNode *prevSibling
+.   cdef_arg JNode *firstChild
+.   cdef_arg JNode *lastChild
+.   cdef_arg JDataType type
+.   cdef_arg void *payload
+.   cdef_end_stacked
+..
+.de pt_jd_parse_file
+.   cdef_start bool jd_parse_file
+.   cdef_arg int fh
+.   cdef_arg jd_Node *node
+.   cdef_end
+..
+.de pt_jd_destroy
+.   cdef_start void jd_destroy
+.   cdef_arg jd_Node *node
+.   cdef_end
+..
+.de pt_jd_serialize
+.   cdef_start void jd_serialize
+.   cdef_arg int jd_out
+.   cdef_arg "const jd_Node" *node
+.   cdef_end
+..
