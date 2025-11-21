@@ -16,8 +16,8 @@ CFLAGS = -Wall -Werror -std=c99 -pedantic -ggdb -fvisibility=hidden
 LFLAGS =
 LDFLAGS =
 
-CFLAGS += -fsanitize=address
-LDFLAGS += -fsanitize=address
+# CFLAGS += -fsanitize=address
+# LDFLAGS += -fsanitize=address
 
 # Uncomment the following if target is a Shared library
 CFLAGS += -fPIC
