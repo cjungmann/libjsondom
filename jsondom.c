@@ -4,6 +4,8 @@
 #include "JParser.h"
 #include "jsondom.h"
 
+#define EXPORT __attribute((visibility("default")))
+
 /**
  * @brief Array of names for jd_id_type
  */
@@ -25,7 +27,7 @@ const char *TypeNames[] = {
  * @param new_tree  address of pointer to which the result will be written
  * @return True for success, false for failure
  */
-bool jd_parse_file(int fh, jd_Node **new_tree)
+EXPORT bool jd_parse_file(int fh, jd_Node **new_tree)
 {
    JNode *node = NULL;
    bool retval = JParser(fh, NULL, &node, 0, NULL);
@@ -41,7 +43,7 @@ bool jd_parse_file(int fh, jd_Node **new_tree)
  * @brief Free memory in the memory tree
  * @param node   Pointer to node to be destroyed
  */
-void jd_destroy(jd_Node *node)
+EXPORT void jd_destroy(jd_Node *node)
 {
    JNode_destroy((JNode**)&node);
 }
@@ -51,7 +53,7 @@ void jd_destroy(jd_Node *node)
  * @param node   node from which to get the relative
  * @return pointer to relative, NULL if node or relative is NULL
  */
-jd_Node* parent(jd_Node *node)
+EXPORT jd_Node* parent(jd_Node *node)
 {
    JNode *jnode = (JNode*)node;
    if (node && jnode->parent)
@@ -65,7 +67,7 @@ jd_Node* parent(jd_Node *node)
  * @param node   node from which to get the relative
  * @return pointer to relative, NULL if node or relative is NULL
  */
-jd_Node* nextSibling(jd_Node *node)
+EXPORT jd_Node* nextSibling(jd_Node *node)
 {
    JNode *jnode = (JNode*)node;
    if (node && jnode->nextSibling)
@@ -79,7 +81,7 @@ jd_Node* nextSibling(jd_Node *node)
  * @param node   node from which to get the relative
  * @return pointer to relative, NULL if node or relative is NULL
  */
-jd_Node* prevSibling(jd_Node *node)
+EXPORT jd_Node* prevSibling(jd_Node *node)
 {
    JNode *jnode = (JNode*)node;
    if (node && jnode->prevSibling)
@@ -93,7 +95,7 @@ jd_Node* prevSibling(jd_Node *node)
  * @param node   node from which to get the relative
  * @return pointer to relative, NULL if node or relative is NULL
  */
-jd_Node* firstChild(jd_Node *node)
+EXPORT jd_Node* firstChild(jd_Node *node)
 {
    JNode *jnode = (JNode*)node;
    if (node && jnode->firstChild)
@@ -107,7 +109,7 @@ jd_Node* firstChild(jd_Node *node)
  * @param node   node from which to get the relative
  * @return pointer to relative, NULL if node or relative is NULL
  */
-jd_Node* lastChild(jd_Node *node)
+EXPORT jd_Node* lastChild(jd_Node *node)
 {
    JNode *jnode = (JNode*)node;
    if (node && jnode->lastChild)
@@ -121,7 +123,7 @@ jd_Node* lastChild(jd_Node *node)
  * @param node  Node to be identified
  * @return Type name of node, "nonode" if node is NULL
  */
-jd_Type jd_id_type(const jd_Node *node)
+EXPORT jd_Type jd_id_type(const jd_Node *node)
 {
    if (node)
       return ((JNode*)node)->type;
@@ -134,7 +136,7 @@ jd_Type jd_id_type(const jd_Node *node)
  * @param node  Node to be identified
  * @return Type name of node, "nonode" if node is NULL
  */
-const char *jd_id_name(const jd_Node *node)
+EXPORT const char *jd_id_name(const jd_Node *node)
 {
    if (node)
       return TypeNames[((JNode*)node)->type];
@@ -142,7 +144,7 @@ const char *jd_id_name(const jd_Node *node)
       return "nonode";
 }
 
-const void *jd_generic_value(const jd_Node *node)
+EXPORT const void *jd_generic_value(const jd_Node *node)
 {
    if (node)
       return ((JNode*)node)->payload;
@@ -150,34 +152,34 @@ const void *jd_generic_value(const jd_Node *node)
       return NULL;
 }
 
-int jd_stringify_null(const jd_Node *node, char *buffer, int bufflen)
+EXPORT int jd_stringify_null(const jd_Node *node, char *buffer, int bufflen)
 {
    return JNode_stringify_null((JNode*)node, buffer, bufflen);
 }
 
-int jd_stringify_true(const jd_Node *node, char *buffer, int bufflen)
+EXPORT int jd_stringify_true(const jd_Node *node, char *buffer, int bufflen)
 {
    return JNode_stringify_true((JNode*)node, buffer, bufflen);
 }
 
-int jd_stringify_false(const jd_Node *node, char *buffer, int bufflen)
+EXPORT int jd_stringify_false(const jd_Node *node, char *buffer, int bufflen)
 {
    return JNode_stringify_false((JNode*)node, buffer, bufflen);
 }
 
-int jd_stringify_integer(const jd_Node *node, char *buffer, int bufflen)
+EXPORT int jd_stringify_integer(const jd_Node *node, char *buffer, int bufflen)
 {
    return JNode_stringify_integer((JNode*)node, buffer, bufflen);
 }
 
-int jd_stringify_float(const jd_Node *node, char *buffer, int bufflen)
+EXPORT int jd_stringify_float(const jd_Node *node, char *buffer, int bufflen)
 {
    return JNode_stringify_float((JNode*)node, buffer, bufflen);
 }
 
 
 
-void jd_serialize(int jd_out, const jd_Node *node)
+EXPORT void jd_serialize(int jd_out, const jd_Node *node)
 {
    JNode_serialize((JNode*)node, 0);
 }
@@ -189,7 +191,7 @@ void jd_serialize(int jd_out, const jd_Node *node)
 
 
 
-bool jd_make_integer_node(jd_Node **node, long value)
+EXPORT bool jd_make_integer_node(jd_Node **node, long value)
 {
    JNode *new_node = NULL;
    if (JNode_create(&new_node, NULL, NULL))
