@@ -178,6 +178,35 @@ void test_node_tree(jd_Node *tree)
    display_node(tree, 4);
 }
 
+/**
+ * @brief Called by @ref test_get_relations to display relation and its contents
+ */
+void display_relation(jd_Node *node, jd_Relation rel)
+{
+   const char *names[] = {
+      "parent", "nextSibling", "prevSibling", "firstChild", "lastChild", NULL
+   };
+   printf( "For '%s', compare jd_get_relation and matched relation function:\n", names[rel]);
+
+   jd_Node *(*rfunc[])(jd_Node *) = {
+      parent, nextSibling, prevSibling, firstChild, lastChild
+   };
+
+   jd_Node *from_getrel = jd_get_relation(node, rel);
+   jd_Node *from_func = rfunc[rel](node);
+
+   if (from_getrel == from_func)
+      printf("Results matched (%p)!\n", from_getrel);
+   else
+      printf("Results NOT MATCHED (%p vs %p).\n", from_getrel, from_func);
+}
+
+void test_get_relations(jd_Node *tree)
+{
+   for (int i=0; i<=JD_LAST; ++i)
+      display_relation(tree, i);
+}
+
 
 bool test_individual_file(const char *filename)
 {
@@ -199,6 +228,7 @@ bool test_individual_file(const char *filename)
       if (jd_parse_file(fd, &node))
       {
          test_node_tree(node);
+         test_get_relations(node);
          jd_destroy(node);
          retval = true;
       }
@@ -309,13 +339,20 @@ int main(int argc, const char **argv)
 {
    int retval = 0;
 
-   test_stringify_integer();
-   return 0;
+   // test_stringify_integer();
 
    if (argc == 1)
+   {
+      printf("Running default action 'process_list_file'\n");
+      getchar();
       retval = process_list_file();
+   }
    else
+   {
+      printf("Running arg as filename (%s).\n", argv[1]);
+      getchar();
       retval = run_arg_as_filename(argv[1]);
+   }
 
    return retval;
 }
