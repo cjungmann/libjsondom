@@ -85,13 +85,25 @@ When **basic** runs, each failed parsing will indicate the failure
 and offer the choice to quit immediately or to continue on to the
 next test.
 
+### Future Test Cases
+
+The article, [Parsing JSON is a Minefield][minefield] describes the
+challenges of parsing JSON and, more importantly to my eyes, includes
+a companion [test cases repository][minefield-tests] that *should*
+eventually be used to measure the performance of this *jsondom*
+library.
+
 ## REFERENCES
 
 - [JSON Definition][jsondef]
 - [Dummy JSON data for Microsoft Edge][ms_dummy_data]
 - [Model implementation of JSON parser][libjson]
+- [JSON is a Minefield][minefield]
+- [Minefield test data][minefield-tests]
 
-[jsondef]:        https://www.json.org/json-en.html
-[ms_dummy_data]:  https://microsoftedge.github.io/Demos/json-dummy-data/
-[libjson]:        https://github.com/vincenthz/libjson
-[doxygen]:        https://www.doxygen.nl/
+[jsondef]:          https://www.json.org/json-en.html
+[ms_dummy_data]:    https://microsoftedge.github.io/Demos/json-dummy-data/
+[libjson]:          https://github.com/vincenthz/libjson
+[doxygen]:          https://www.doxygen.nl/
+[minefield]:        https://seriot.ch/software/parsing_json.html
+[minefield-tests]:  https://github.com/nst/JSONTestSuite
