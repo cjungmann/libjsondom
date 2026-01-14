@@ -98,9 +98,10 @@ const char *StealReadString(RSHandle *handle)
  *
  * @param fh      handle to an open JSON document file
  * @param handle  pointer to an empty initialized RSHandle
+ * @param pe      pointer to parsing error structure
  * @return True for success, false for failure
  */
-bool JReadString(int fh, RSHandle *handle)
+bool JReadString(int fh, RSHandle *handle, jd_ParseError *pe)
 {
    bool retval = false;
 
@@ -148,7 +149,8 @@ bool JReadString(int fh, RSHandle *handle)
       // implies an incomplete document.  Leave retval==false
       // to terminate parsing.
 
-      (*Report_Error)(fh, "Unexpected end-of-file while reading a string");
+      report_parse_error(pe, fh, "unexpected EOF");
+      // (*Report_Error)(fh, "Unexpected end-of-file while reading a string");
    }
    else
    {
@@ -211,6 +213,7 @@ bool test_string(const char *str)
    // Fake file established, simulate JParser processing:
    char chr;
    size_t bytes_read;
+   jd_ParseError pe = {0};
 
    while ((bytes_read = read(fh, &chr, 1)) == 1)
    {
@@ -218,7 +221,7 @@ bool test_string(const char *str)
          continue;
 
       ReadStringInit(&handle, chr);
-      if (JReadString(fh, &handle))
+      if (JReadString(fh, &handle, &pe))
       {
          printf("The output is '%s'.\n", handle.string);
       }

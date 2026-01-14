@@ -4,6 +4,7 @@
 #define JREADSTRING_H
 
 #include <stdbool.h>
+#include "jsondom.h"
 
 /** Typedef of RSHandle_s struct */
 typedef struct RSHandle_s RSHandle;
@@ -49,7 +50,7 @@ struct RSHandle_s {
 void ReadStringInit(RSHandle *rSHandle, char firstChar);
 void ReadStringDestroy(RSHandle *rSHandle);
 const char *StealReadString(RSHandle *handle);
-bool JReadString(int fh, RSHandle *handle);
+bool JReadString(int fh, RSHandle *handle, jd_ParseError *pe);
 /** @} */
 
 
