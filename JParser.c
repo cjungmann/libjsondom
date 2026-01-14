@@ -15,6 +15,14 @@
 
 #include "JParser.h"
 #include "JReadString.h"
+#include "isJsonNumber.h"
+
+void report_parse_error(jd_ParseError *pe, int fh, const char *message)
+{
+   off_t offset = lseek(fh, 0, SEEK_CUR);
+   pe->char_loc = offset;
+   pe->message = message;
+}
 
 bool Standard_Report_Error(int source_fh, const char *format, ...)
 {
@@ -35,13 +43,14 @@ bool Array_IsEndChar(char chr) { return chr == ']'; }
 /** Implementation of CollectionTools_s::Coerce_type when processing an array */
 bool Array_CoerceType(JNode *node) { return JNode_make_array(node); }
 /** Implementation of CollectionTools_s::ReadMember when processing an array */
-bool Array_ReadMember(int fh,
-                      JNode *parent,
-                      JNode **new_node,
-                      char first_char,
-                      char *end_signal)
+bool Array_ReadMember(int           fh,
+                      JNode         *parent,
+                      JNode         **new_node,
+                      char          first_char,
+                      char          *end_signal,
+                      jd_ParseError *pe)
 {
-   return JParser(fh, parent, new_node, first_char, end_signal);
+   return JParser(fh, parent, new_node, first_char, end_signal, pe);
 }
 
 /**
@@ -60,11 +69,11 @@ bool Object_IsEndChar(char chr) { return chr == '}'; }
 bool Object_CoerceType(JNode *node) { return JNode_make_object(node); }
 /** Implementation of CollectionTools_s::ReadMember when processing an object */
 bool Object_ReadMember(int fh,
-                       JNode *parent,
-                       JNode **new_node,
-                       char first_char,
-                       char *end_signal
-   )
+                       JNode         *parent,
+                       JNode         **new_node,
+                       char          first_char,
+                       char          *end_signal,
+                       jd_ParseError *pe)
 {
    bool retval = false;
 
@@ -73,16 +82,18 @@ bool Object_ReadMember(int fh,
 
    if (first_char != '"')
    {
-      if ((*Report_Error)(
-             fh,
-             "error parsing object member: "
-             "labels must be enclosed in double-quotes."))
+      report_parse_error(pe, fh,
+                         "labels must be double-quoted");
+      // if ((*Report_Error)(
+      //        fh,
+      //        "error parsing object member: "
+      //        "labels must be enclosed in double-quotes."))
          goto early_exit;
    }
 
    // Read the string that's queued-up:
    ReadStringInit(&rsh_label, first_char);
-   if (JReadString(fh, &rsh_label))
+   if (JReadString(fh, &rsh_label, pe))
    {
       JNode *value_node = NULL;
       bool past_colon = false;
@@ -99,7 +110,7 @@ bool Object_ReadMember(int fh,
          else if (past_colon)
          {
             char temp_end_signal = 0;
-            if (JParser(fh, NULL, &value_node, chr, &temp_end_signal))
+            if (JParser(fh, NULL, &value_node, chr, &temp_end_signal, pe))
             {
                // We have the label string and value node,
                // so we can build the property now:
@@ -130,10 +141,12 @@ bool Object_ReadMember(int fh,
          else
          {
             // A non-colon character after label is an error
-            if ((*Report_Error)(
-                   fh,
-                   "error parsing object member: "
-                   "A colon is required after a member label."))
+            report_parse_error(pe, fh,
+                               "colons must follow labels");
+            // if ((*Report_Error)(
+            //        fh,
+            //        "error parsing object member: "
+            //        "A colon is required after a member label."))
                goto early_exit;
             break;
          }
@@ -165,9 +178,15 @@ CollectionTools objectTools = {
  * data using the struct of function pointers to test and read
  * according to the collection type being created.
  */
-bool parse_collection(int fh, JNode *parent, CollectionTools *tools, JNode **node)
+bool parse_collection(int             fh,
+                      JNode           *parent,
+                      CollectionTools *tools,
+                      JNode           **node,
+                      jd_ParseError   *pe)
 {
    bool retval = false;
+   bool needs_comma = false;
+   bool collection_terminated = false;
 
    ssize_t chars_read;
    char chr;
@@ -184,25 +203,46 @@ bool parse_collection(int fh, JNode *parent, CollectionTools *tools, JNode **nod
 
             if ((*tools->is_end_char)(chr))
             {
+               collection_terminated = true;
                retval = true;
                break;
             }
-            else if (chr == ',')
-               continue;
+            else if ( strchr("]}", chr) )
+            {
+               // We have a collection-ending char that was not approved by
+               // the previous 'is_end_char' test, so it's the wrong
+               // collection-ending char:
+               report_parse_error(pe, fh,
+                                  "incorrect end char for the open collection");
+               goto early_exit;
+            }
+            else if ( needs_comma )
+            {
+               needs_comma = 0;
+               if (chr == ',')
+                  continue;
+               else
+               {
+                  report_parse_error(pe, fh,
+                                     "missing comma between collection memebers");
+                  goto early_exit;
+               }
+            }
             else
             {
                char end_char = '\0';
                JNode *new_el = NULL;
-               if ( ! (*tools->read_member)(fh, new_node, &new_el, chr, &end_char))
+               if ( ! (*tools->read_member)(fh, new_node, &new_el, chr, &end_char, pe))
                {
-                  if ((*Report_Error)(
-                         fh,
-                         "error parsing value starting with '%c' (%d).",
-                         chr, chr))
-                     break;
+                  // read_member should already have 
+                  goto early_exit;
                }
+
+               needs_comma = 1;
+
                if ((*tools->is_end_char)(end_char))
                {
+                  collection_terminated = true;
                   retval = true;
                   break;
                }
@@ -213,11 +253,9 @@ bool parse_collection(int fh, JNode *parent, CollectionTools *tools, JNode **nod
                   continue;
                else
                {
-                  if ((*Report_Error)(
-                         fh,
-                         "expected a ',' or '%c' instead of '%c'.",
-                         tools->end_char, end_char))
-                     break;
+                  report_parse_error(pe, fh,
+                                     "unexpected termination character");
+                  goto early_exit;
                }
             }
          }
@@ -232,6 +270,11 @@ bool parse_collection(int fh, JNode *parent, CollectionTools *tools, JNode **nod
          }
       }
    }
+
+   if ( !collection_terminated )
+      report_parse_error(pe, fh, "unterminated collection");
+
+  early_exit:
 
    if (new_node)
       JNode_destroy(&new_node);
@@ -256,10 +299,11 @@ bool parse_collection(int fh, JNode *parent, CollectionTools *tools, JNode **nod
  * @return True if successful, false if failed
  */
 bool JParser(int fh,
-             JNode *parent,
-             JNode **node,
-             char first_char,
-             char *end_signal)
+             JNode         *parent,
+             JNode         **node,
+             char          first_char,
+             char          *end_signal,
+             jd_ParseError *pe)
 {
    bool retval = true;
 
@@ -279,7 +323,7 @@ bool JParser(int fh,
    switch(chr)
    {
       case '[':
-         if (! parse_collection(fh, parent, &arrayTools, &new_node))
+         if (! parse_collection(fh, parent, &arrayTools, &new_node, pe))
          {
             retval = false;
             goto early_exit;
@@ -288,7 +332,7 @@ bool JParser(int fh,
          break;
 
       case '{':
-         if (! parse_collection(fh, parent, &objectTools, &new_node))
+         if (! parse_collection(fh, parent, &objectTools, &new_node, pe))
          {
             retval = false;
             goto early_exit;
@@ -298,7 +342,7 @@ bool JParser(int fh,
 
       default:
          ReadStringInit(&rsh, chr);
-         if (JReadString(fh, &rsh))
+         if (JReadString(fh, &rsh, pe))
          {
             if (end_signal)
                *end_signal = rsh.end_signal;
@@ -325,26 +369,21 @@ bool JParser(int fh,
                      // Float test first because a valid float decimal would
                      // terminate an integer value
                      char *endptr = NULL;
-                     if (strchr(rsh.string,'.'))
-                        dvalue = strtod(rsh.string, &endptr);
-
+                     dvalue = strtod(rsh.string, &endptr);
                      if (endptr > rsh.string && errno==0)
                         JNode_set_float(temp_node, dvalue);
                      else
                      {
-                        endptr = NULL;
                         lvalue = strtol(rsh.string, &endptr, 0);
                         if (endptr > rsh.string && errno==0)
                            JNode_set_integer(temp_node, lvalue);
                         else
                         {
-                           // Neither a float nor an integer, it's a mistake
-                           (*Report_Error)(
-                                  fh,
-                                  "Unquoted values must be 'null', 'true', 'false', "
-                                  "a float or integer value."
-                              );
+                           report_parse_error(pe, fh,
+                                              "values must be quoted unless a "
+                                              "number or a keyword");
                            retval = false;
+                           goto early_exit;
                         }
                      }
                   }
@@ -384,8 +423,10 @@ int main(int argc, const char **argv)
    int fh = open(filename, O_RDONLY);
    if (fh)
    {
+      jd_ParseError pe = {0};
+      char end_char;
       JNode *root;
-      if (JParser(fh, NULL, &root, 0))
+      if (JParser(fh, NULL, &root, 0, &end_char, &pe))
       {
          JNode_serialize(root, 0);
          JNode_destroy(&root);

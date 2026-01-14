@@ -2,6 +2,9 @@
 #define JPARSER_H
 
 #include "JNode.h"
+#include "jsondom.h"
+
+void report_parse_error(jd_ParseError *pe, int fh, const char *message);
 
 /**
  * Function type for overriding standard error reporter
@@ -37,7 +40,8 @@ typedef bool (*Read_Member)(int fh,
                             JNode *parent,
                             JNode **new_node,
                             char first_char,
-                            char *signal_char
+                            char *signal_char,
+                            jd_ParseError *pe
    );
 
 /**
@@ -84,11 +88,12 @@ struct CollectionTools_s {
 /**
  * @ingroup AllFunctions
  */
-bool JParser(int fh,
-             JNode *parent,
-             JNode **node,
-             char first_char,
-             char *signal_char
+bool JParser(int           fh,
+             JNode         *parent,
+             JNode         **node,
+             char          first_char,
+             char          *signal_char,
+             jd_ParseError *parse_error
    );
 
 
