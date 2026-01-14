@@ -5,6 +5,12 @@
 
 typedef void jd_Node;
 
+typedef struct jd_ParseError_s {
+   int        char_loc;
+   const char *message;
+} jd_ParseError;
+
+
 typedef enum jd_Type_e {
    JD_NULL,         ///< constant NULL/empty value
    JD_TRUE,         ///< constant true value
@@ -28,7 +34,7 @@ typedef enum jd_Relation_e {
 } jd_Relation;
 
 
-bool jd_parse_file(int fh, jd_Node **new_tree);
+bool jd_parse_file(int fh, jd_Node **new_tree, jd_ParseError *pe);
 void jd_destroy(jd_Node *node);
 
 jd_Node* jd_get_relation(jd_Node *node, jd_Relation relation);

@@ -27,10 +27,10 @@ const char *TypeNames[] = {
  * @param new_tree  address of pointer to which the result will be written
  * @return True for success, false for failure
  */
-EXPORT bool jd_parse_file(int fh, jd_Node **new_tree)
+EXPORT bool jd_parse_file(int fh, jd_Node **new_tree, jd_ParseError *pe)
 {
    JNode *node = NULL;
-   bool retval = JParser(fh, NULL, &node, 0, NULL);
+   bool retval = JParser(fh, NULL, &node, 0, NULL, pe);
    if (retval)
       *new_tree = (jd_Node*)node;
    else
