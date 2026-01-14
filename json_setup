@@ -1,20 +1,51 @@
 #!/usr/bin/env bash
 
-declare BASE_URL="https://microsoftedge.github.io/Demos/json-dummy-data/"
-get_file()
+
+get_test_suite()
 {
-    local fname="$1"
-    wget "${BASE_URL}$fname" -O "$fname"
+    local URL="https://github.com/nst/JSONTestSuite.git"
+    cd json_files
+    git clone "$URL"
+
+    mkdir suite_good
+    cd suite_good
+    cp -s ../JSONTestSuite/test_parsing/y_*.json .
+    cd ..
+
+    mkdir suite_bad
+    cd suite_bad
+    cp -s ../JSONTestSuite/test_parsing/n_*.json .
+    cd ..
+
+    cd ..
 }
 
-if ! [ -d json_files ]; then
-    mkdir json_files
+
+get_ms_jsons()
+{
+    local BASE_URL="https://microsoftedge.github.io/Demos/json-dummy-data/"
     cd json_files
+    
+    get_file()
+    {
+        local fname="$1"
+        wget "${BASE_URL}$fname" -O "$fname"
+    }
     get_file "64KB.json"
     get_file "64KB-min.json"
-    get_file "5MB.json"
+    # get_file "5MB.json"
 
     get_file "missing-colon.json"
     get_file "unterminated.json"
     get_file "binary-data.json"
+
+    cd ..
+}
+
+
+if ! [ -d json_files ]; then
+    mkdir json_files
 fi
+
+# get_ms_jsons
+get_test_suite
