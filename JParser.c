@@ -341,6 +341,8 @@ bool JParser(int fh,
          break;
 
       default:
+         // Allocating resources from here, no more
+         // 'early_exit' to avoid memory leaks:
          ReadStringInit(&rsh, chr);
          if (JReadString(fh, &rsh, pe))
          {
@@ -362,29 +364,20 @@ bool JParser(int fh,
                      JNode_set_false(temp_node);
                   else  // unquoted values, integer, float, or syntax-error
                   {
-                     errno = 0;
-                     double dvalue = 0.0;
-                     long lvalue = 0;
-
-                     // Float test first because a valid float decimal would
-                     // terminate an integer value
-                     char *endptr = NULL;
-                     dvalue = strtod(rsh.string, &endptr);
-                     if (endptr > rsh.string && errno==0)
-                        JNode_set_float(temp_node, dvalue);
+                     bool isFloat;
+                     if (isJsonNumber(rsh.string, &isFloat))
+                     {
+                        if (isFloat)
+                           JNode_set_float(temp_node, rsh.string);
+                        else
+                           JNode_set_integer(temp_node, rsh.string);
+                     }
                      else
                      {
-                        lvalue = strtol(rsh.string, &endptr, 0);
-                        if (endptr > rsh.string && errno==0)
-                           JNode_set_integer(temp_node, lvalue);
-                        else
-                        {
-                           report_parse_error(pe, fh,
-                                              "values must be quoted unless a "
-                                              "number or a keyword");
-                           retval = false;
-                           goto early_exit;
-                        }
+                        report_parse_error(pe, fh,
+                                           "values must be quoted unless a "
+                                           "number or a keyword");
+                        retval = false;
                      }
                   }
                } // if (chr='"') ; else
@@ -395,7 +388,11 @@ bool JParser(int fh,
                   JNode_destroy(&temp_node);
             } // if JNode_create
          }
-         ReadStringDestroy(&rsh);
+         else // if JReadString failed:
+         {
+            retval = false;
+            ReadStringDestroy(&rsh);
+         }
          break;   // default:
    }  // switch
 
