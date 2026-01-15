@@ -118,8 +118,8 @@ bool JNode_discard_payload(JNode *node);
 bool JNode_set_true(JNode *node);
 bool JNode_set_false(JNode *node);
 bool JNode_set_null(JNode *node);
-bool JNode_set_integer(JNode *node, long value);
-bool JNode_set_float(JNode *node, double value);
+bool JNode_set_integer(JNode *node, const char *value);
+bool JNode_set_float(JNode *node, const char *value);
 bool JNode_make_array(JNode *node);
 bool JNode_make_object(JNode *node);
 /** @} */

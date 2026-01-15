@@ -239,15 +239,11 @@ bool JNode_set_false(JNode *node)
  * @param value  value to be set in the payload
  * @return true for success, false for failure
  */
-bool JNode_set_integer(JNode *node, long value)
+bool JNode_set_integer(JNode *node, const char *value)
 {
-   JNode_discard_payload(node);
-
-   node->payload = (void*)malloc(sizeof(long));
-   if (node->payload)
+   if (JNode_copy_string(node, value))
    {
       node->type = DT_INTEGER;
-      *(long*)node->payload = value;
       return true;
    }
 
@@ -260,15 +256,11 @@ bool JNode_set_integer(JNode *node, long value)
  * @param value  value to be set in the payload
  * @return true for success, false for failure
  */
-bool JNode_set_float(JNode *node, double value)
+bool JNode_set_float(JNode *node, const char *value)
 {
-   JNode_discard_payload(node);
-
-   node->payload = (void*)malloc(sizeof(double));
-   if (node->payload)
+   if (JNode_copy_string(node, value))
    {
       node->type = DT_FLOAT;
-      *(double*)node->payload = value;
       return true;
    }
 
@@ -463,9 +455,9 @@ void JNode_print_integer(const JNode *node, int indent)
 {
    assert(node && node->type==DT_INTEGER);
    if (indent<0)
-      printf("%ld", *(long*)node->payload);
+      printf("%s", (char*)node->payload);
    else
-      printf("\n%*c%ld", indent, ' ', *(long*)node->payload);
+      printf("\n%*c%s", indent, ' ', (char*)node->payload);
 }
 
 /**
@@ -477,9 +469,9 @@ void JNode_print_float(const JNode *node, int indent)
 {
    assert(node && node->type==DT_FLOAT);
    if (indent<0)
-      printf("%f", *(double*)node->payload);
+      printf("%s", (char*)node->payload);
    else
-      printf("\n%*c%f", indent, ' ', *(double*)node->payload);
+      printf("\n%*c%s", indent, ' ', (char*)node->payload);
 }
 
 /**
@@ -628,11 +620,11 @@ void populate_simple_object(JNode *parent)
 
    JNode_create(&child, parent, NULL);
    JNode_make_null_property(child, "five_integer");
-   JNode_set_integer(child->lastChild, 1000);
+   JNode_set_integer(child->lastChild, "1000");
 
    JNode_create(&child, parent, NULL);
    JNode_make_null_property(child, "six_float");
-   JNode_set_float(child->lastChild, 3.141592653589);
+   JNode_set_float(child->lastChild, "3.141592653589");
 }
 
 void test_array_of_arrays(void)
