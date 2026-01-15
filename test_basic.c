@@ -147,8 +147,9 @@ bool parse_test_file(const char *filename)
    int fd = open(file_path, O_RDONLY);
    if (fd>=0)
    {
+      jd_ParseError pe = {0};
       jd_Node *node;
-      if (jd_parse_file(fd, &node))
+      if (jd_parse_file(fd, &node, &pe))
       {
          printf("Successfully parsed file!\n");
 
@@ -156,6 +157,8 @@ bool parse_test_file(const char *filename)
          jd_destroy(node);
          retval = true;
       }
+      else
+         printf("Failed to parse %s: %s.\n", filename, pe.message);
    }
    else
       printf("Failed to open '%s': %s.\n", file_path, strerror(errno));
@@ -224,8 +227,9 @@ bool test_individual_file(const char *filename)
    }
    else
    {
+      jd_ParseError pe;
       jd_Node *node;
-      if (jd_parse_file(fd, &node))
+      if (jd_parse_file(fd, &node, &pe))
       {
          test_node_tree(node);
          test_get_relations(node);
@@ -297,59 +301,21 @@ int run_arg_as_filename(const char *filepath)
    return retval;
 }
 
-void demo_stringify_integer(long val)
-{
-   jd_Node *node;
-   if (jd_make_integer_node(&node, val))
-   {
-      int len = jd_stringify_integer(node, NULL, 0);
-      if (len>0)
-      {
-         char *buff = (char*)malloc(len);
-         if (buff)
-         {
-            jd_stringify_integer(node, buff, len);
-            printf("Full stringify converts %ld to '%s'.\n",
-                   val, buff);
-
-            if (len > 1)
-            {
-               jd_stringify_integer(node, buff, len-1);
-               printf("Short buffer stringify converts %ld to '%s'.\n",
-                      val, buff);
-            }
-
-            free(buff);
-         }
-      }
-      jd_destroy(node);
-   }
-}
-
-void test_stringify_integer(void)
-{
-   demo_stringify_integer(1234);
-   demo_stringify_integer(-1234);
-   demo_stringify_integer(987654321);
-   demo_stringify_integer(INTMAX_MAX);
-}
-
-
 int main(int argc, const char **argv)
 {
    int retval = 0;
 
-   // test_stringify_integer();
-
    if (argc == 1)
    {
       printf("Running default action 'process_list_file'\n");
+      printf("Press any key to begin.\n");
       getchar();
       retval = process_list_file();
    }
    else
    {
       printf("Running arg as filename (%s).\n", argv[1]);
+      printf("Press any key to begin.\n");
       getchar();
       retval = run_arg_as_filename(argv[1]);
    }
