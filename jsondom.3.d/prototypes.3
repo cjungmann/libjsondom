@@ -27,6 +27,7 @@
 .   cdef_start bool jd_parse_file
 .   cdef_arg int fh
 .   cdef_arg jd_Node *node
+.   cdef_arg jd_ParseError *pe
 .   cdef_end
 ..
 .de pt_jd_destroy
@@ -39,4 +40,10 @@
 .   cdef_arg int jd_out
 .   cdef_arg "const jd_Node" *node
 .   cdef_end
+..
+.de pt_jd_ParseError
+.  cdef_start struct jd_ParseError_s
+.  cdef_arg int char_log
+.  cdef_arg "const char" *message
+.  cdef_end_stacked
 ..
