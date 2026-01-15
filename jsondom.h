@@ -54,12 +54,7 @@ int jd_stringify_true(const jd_Node *node, char *buffer, int bufflen);
 int jd_stringify_false(const jd_Node *node, char *buffer, int bufflen);
 int jd_stringify_integer(const jd_Node *node, char *buffer, int bufflen);
 
-
 void jd_serialize(int jd_out, const jd_Node *node);
-
-
-bool jd_make_integer_node(jd_Node **node, long value);
-
 
 
 #endif // JSONDOM_H

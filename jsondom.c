@@ -193,8 +193,6 @@ EXPORT int jd_stringify_float(const jd_Node *node, char *buffer, int bufflen)
    return JNode_stringify_float((JNode*)node, buffer, bufflen);
 }
 
-
-
 EXPORT void jd_serialize(int jd_out, const jd_Node *node)
 {
    JNode_serialize((JNode*)node, 0);
@@ -203,19 +201,3 @@ EXPORT void jd_serialize(int jd_out, const jd_Node *node)
 
 
 
-
-
-
-
-EXPORT bool jd_make_integer_node(jd_Node **node, long value)
-{
-   JNode *new_node = NULL;
-   if (JNode_create(&new_node, NULL, NULL))
-   {
-      JNode_set_integer(new_node, value);
-      *node = (jd_Node*)new_node;
-      return true;
-   }
-
-   return false;
-}
