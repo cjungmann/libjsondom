@@ -350,7 +350,8 @@ bool JParser(int fh,
                *end_signal = rsh.end_signal;
 
             JNode *temp_node;
-            if (JNode_create(&temp_node, parent, NULL))
+            // Defer adoption by parent until successfully parsing child:
+            if (JNode_create(&temp_node, NULL, NULL))
             {
                if (chr == '"')
                   JNode_take_string(temp_node, StealReadString(&rsh));
@@ -383,7 +384,10 @@ bool JParser(int fh,
                } // if (chr='"') ; else
 
                if (retval)
+               {
+                  JNode_adopt(temp_node, parent, NULL);
                   new_node = temp_node;
+               }
                else
                   JNode_destroy(&temp_node);
             } // if JNode_create
