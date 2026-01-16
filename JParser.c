@@ -385,7 +385,9 @@ bool JParser(int fh,
 
                if (retval)
                {
-                  JNode_adopt(temp_node, parent, NULL);
+                  if (parent)
+                     JNode_adopt(temp_node, parent, NULL);
+
                   new_node = temp_node;
                }
                else
@@ -405,6 +407,31 @@ bool JParser(int fh,
 
   early_exit:
    return retval;
+}
+
+
+/**
+ * @brief Confirms only whitespace characters remain in file.
+ *
+ * Since the root object must be a singleton, this function
+ * confirms that no additional content follows the current
+ * file pointer.  js_parse_file calls this to confirm.
+ *
+ * @param fh   handle of JSON file
+ * @return true if only whitespace remains;
+ *         false returned at first non-whitespace character
+ */
+bool confirm_no_further_file_content(int fh)
+{
+   ssize_t chars_read;
+   char chr = ' ';
+   while ((chars_read = read(fh, &chr, 1))==1)
+   {
+      if (!isspace(chr))
+         return false;
+   }
+
+   return true;
 }
 
 

@@ -96,5 +96,7 @@ bool JParser(int           fh,
              jd_ParseError *parse_error
    );
 
+bool confirm_no_further_file_content(int fh);
+
 
 #endif
