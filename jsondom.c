@@ -29,12 +29,22 @@ const char *TypeNames[] = {
  */
 EXPORT bool jd_parse_file(int fh, jd_Node **new_tree, jd_ParseError *pe)
 {
+   *new_tree = NULL;
+
    JNode *node = NULL;
    bool retval = JParser(fh, NULL, &node, 0, NULL, pe);
    if (retval)
-      *new_tree = (jd_Node*)node;
-   else
-      *new_tree = NULL;
+   {
+      if (confirm_no_further_file_content(fh))
+         *new_tree = (jd_Node*)node;
+      else
+      {
+         report_parse_error(pe, fh,
+                            "forbidden characters following singleton root object");
+         JNode_destroy((jd_Node*)node);
+         retval = false;
+      }
+   }
 
    return retval;
 }
