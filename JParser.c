@@ -185,12 +185,12 @@ bool parse_collection(int             fh,
                       jd_ParseError   *pe)
 {
    bool retval = false;
-   bool needs_comma = false;
    bool needs_member = false;
    bool collection_terminated = false;
 
+
    ssize_t chars_read;
-   char chr;
+   char chr = '\0';
 
    JNode *new_node = NULL;
    if (JNode_create(&new_node, NULL, NULL))
@@ -202,94 +202,166 @@ bool parse_collection(int             fh,
             if (isspace(chr))
                continue;
 
-            if (!needs_member)
+            if ((*tools->is_end_char)(chr))
             {
-               if (chr == ',')
-               {
-                  needs_member = true;
-                  continue;
-               }
-               else if ((*tools->is_end_char)(chr))
-               {
-                  collection_terminated = true;
-                  retval = true;
-                  break;
-               }
-               else if ( strchr("]}", chr) )
-               {
-                  // We have a collection-ending char that was not approved by
-                  // the previous 'is_end_char' test, so it's the wrong
-                  // collection-ending char:
-                  report_parse_error(pe, fh,
-                                     "incorrect end char for the open collection");
-                  goto early_exit;
-               }
-               else if ( needs_comma )
-               {
-                  needs_comma = 0;
-                  if (chr == ',')
-                  {
-                     needs_member = true;
-                     continue;
-                  }
-                  else
-                  {
-                     report_parse_error(pe, fh,
-                                        "missing comma between collection memebers");
-                     goto early_exit;
-                  }
-               }
-               else
-                  needs_member = true;
-            }
-
-            if (needs_member)
-            {
-               if (chr==']' || chr=='}')
+               if (needs_member)
                {
                   report_parse_error(pe, fh,
                                      "collection prematurely terminated");
                   goto early_exit;
                }
+               else
+                  retval = true;
 
-               char end_char = '\0';
-               JNode *new_el = NULL;
-               if ( ! (*tools->read_member)(fh, new_node, &new_el, chr, &end_char, pe))
-               {
-                  // read_member should already have reported the error that put us here
-                  goto early_exit;
-               }
-
-               // If comma ended read_member, no further checking is required:
-               if (end_char == ',')
+               // Goto parent attachment if appropriate
+               break;
+            }
+            else if (chr==']' || chr=='}')
+            {
+               report_parse_error(pe, fh,
+                                  "incorrect end char for the collection type");
+               goto early_exit;
+            }
+            else if (chr == ',')
+            {
+               if (!needs_member)
                {
                   needs_member = true;
                   continue;
                }
                else
                {
-                  needs_member = false;
-                  needs_comma = 1;
-
-                  if ((*tools->is_end_char)(end_char))
-                  {
-                     collection_terminated = true;
-                     retval = true;
-                     break;
-                  }
-                  else if ((end_char=='"' && chr=='"')
-                           || end_char == '\0'
-                           || end_char == ','
-                           || isspace(end_char))
-                     continue;
-                  else
-                  {
-                     report_parse_error(pe, fh,
-                                        "unexpected termination character");
-                     goto early_exit;
-                  }
+                  report_parse_error(pe, fh,
+                                     "comma in collection without preceeding member");
+                  goto early_exit;
                }
             }
+            else if (new_node->firstChild == NULL)
+            {
+               report_parse_error(pe, fh,
+                                  "missing comma between collection memebers");
+               goto early_exit;
+            }
+
+            char end_char = '\0';
+            JNode *new_el = NULL;
+            if ((*tools->read_member)(fh, new_node, &new_el, chr, &end_char, pe))
+            {
+               needs_member = false;
+
+               if (end_char == ',')
+                  needs_member = true;
+               else if ((*tools->is_end_char)(end_char))
+               {
+                  retval = true;
+                  // Goto parent attachment if appropriate
+                  break;
+               }
+               else if ((end_char=='"' && chr=='"')
+                        || end_char == '\0'
+                        || isspace(end_char))
+                  continue;
+               else
+               {
+                  report_parse_error(pe, fh,
+                                     "unexpected member end char");
+                  goto early_exit;
+               }
+            }
+            else
+            {
+               // read_member should already have reported the error that put us here
+               goto early_exit;
+            }
+
+            // if (!needs_member)
+            // {
+            //    if (chr == ',')
+            //    {
+            //       needs_member = true;
+            //       continue;
+            //    }
+            //    else if ((*tools->is_end_char)(chr))
+            //    {
+            //       collection_terminated = true;
+            //       retval = true;
+            //       break;
+            //    }
+            //    else if ( strchr("]}", chr) )
+            //    {
+            //       // We have a collection-ending char that was not approved by
+            //       // the previous 'is_end_char' test, so it's the wrong
+            //       // collection-ending char:
+            //       report_parse_error(pe, fh,
+            //                          "incorrect end char for the open collection");
+            //       goto early_exit;
+            //    }
+            //    else if ( needs_comma )
+            //    {
+            //       needs_comma = 0;
+            //       if (chr == ',')
+            //       {
+            //          needs_member = true;
+            //          continue;
+            //       }
+            //       else
+            //       {
+            //          report_parse_error(pe, fh,
+            //                             "missing comma between collection memebers");
+            //          goto early_exit;
+            //       }
+            //    }
+            //    else
+            //       needs_member = true;
+            // }
+
+            // if (needs_member)
+            // {
+            //    if (chr==']' || chr=='}')
+            //    {
+            //       report_parse_error(pe, fh,
+            //                          "collection prematurely terminated");
+            //       goto early_exit;
+            //    }
+
+            //    char end_char = '\0';
+            //    JNode *new_el = NULL;
+            //    if ( ! (*tools->read_member)(fh, new_node, &new_el, chr, &end_char, pe))
+            //    {
+            //       // read_member should already have reported the error that put us here
+            //       goto early_exit;
+            //    }
+
+            //    // If comma ended read_member, no further checking is required:
+            //    if (end_char == ',')
+            //    {
+            //       needs_member = true;
+            //       continue;
+            //    }
+            //    else
+            //    {
+            //       needs_member = false;
+            //       needs_comma = 1;
+
+            //       if ((*tools->is_end_char)(end_char))
+            //       {
+            //          collection_terminated = true;
+            //          retval = true;
+            //          break;
+            //       }
+            //       else if ((end_char=='"' && chr=='"')
+            //                || end_char == '\0'
+            //                || end_char == ','
+            //                || isspace(end_char))
+            //          continue;
+            //       else
+            //       {
+            //          report_parse_error(pe, fh,
+            //                             "unexpected termination character");
+            //          goto early_exit;
+            //       }
+            //    }
+            // }
          }
 
          if (retval)
