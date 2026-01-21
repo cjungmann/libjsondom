@@ -202,45 +202,57 @@ bool parse_collection(int             fh,
             if (isspace(chr))
                continue;
 
-            if ((*tools->is_end_char)(chr))
+            if (needs_member)
             {
-               if (needs_member)
-               {
-                  report_parse_error(pe, fh,
-                                     "collection prematurely terminated");
-                  goto early_exit;
-               }
-               else
-                  retval = true;
-
-               // Goto parent attachment if appropriate
-               break;
-            }
-            else if (chr==']' || chr=='}')
-            {
-               report_parse_error(pe, fh,
-                                  "incorrect end char for the collection type");
-               goto early_exit;
-            }
-            else if (chr == ',')
-            {
-               if (!needs_member)
-               {
-                  needs_member = true;
-                  continue;
-               }
-               else
+               if (chr == ',')
                {
                   report_parse_error(pe, fh,
                                      "comma in collection without preceeding member");
                   goto early_exit;
                }
             }
-            else if (new_node->firstChild == NULL)
+            else
             {
-               report_parse_error(pe, fh,
-                                  "missing comma between collection memebers");
-               goto early_exit;
+               if ((*tools->is_end_char)(chr))
+               {
+                  if (needs_member)
+                  {
+                     report_parse_error(pe, fh,
+                                        "collection prematurely terminated");
+                     goto early_exit;
+                  }
+                  else
+                     retval = true;
+
+                  // Goto parent attachment if appropriate
+                  break;
+               }
+               else if (chr==']' || chr=='}')
+               {
+                  report_parse_error(pe, fh,
+                                     "incorrect end char for the collection type");
+                  goto early_exit;
+               }
+               else if (chr == ',')
+               {
+                  if (new_node->firstChild == NULL)
+                  {
+                     report_parse_error(pe, fh,
+                                        "comma in collection without preceeding member");
+                     goto early_exit;
+                  }
+                  else
+                  {
+                     needs_member = true;
+                     continue;
+                  }
+               }
+               else if (new_node->firstChild != NULL)
+               {
+                  report_parse_error(pe, fh,
+                                     "missing comma between collection members");
+                  goto early_exit;
+               }
             }
 
             char end_char = '\0';
