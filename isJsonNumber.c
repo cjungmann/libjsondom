@@ -31,8 +31,8 @@ bool isJsonNumber(const char *str, bool *isFloatReturn)
       }
       else if (*ptr == '.')
       {
-         // .123 and -.123 are invalid
-         if ( ptr==str || !isdigit(*(ptr-1)))
+         // .123, -.123, and 23. are invalid
+         if ( ptr==str || !isdigit(*(ptr-1)) || !isdigit(*(ptr+1)))
             goto early_exit;
          // encountering a second period or a period
          // in the exponent are invalid:
