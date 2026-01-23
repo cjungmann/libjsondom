@@ -25,11 +25,25 @@ typedef enum jd_Type_e {
    JD_OBJECT        ///< collection of #JD_PROPERTY nodes
 } jd_Type;
 
+/**
+ * @brief Indexes of relations to a given jd_Node for use with
+ *       jd_get_relation
+ *
+ * The values go up matching the direction of the relation in a
+ * clockwise direction:
+ * 
+ * 0 up    (12:00) parent node
+ * 1 right (03:00) next sibling
+ * 2 down  (06:00) first child
+ * 3 left  (09:00) previous sibling
+ * also special index
+ * 4 for pointer to last child (for appending new children)
+ */
 typedef enum jd_Relation_e {
    JD_PARENT = 0,
    JD_NEXT,
-   JD_PREVIOUS,
    JD_FIRST,
+   JD_PREVIOUS,
    JD_LAST
 } jd_Relation;
 
@@ -41,8 +55,8 @@ jd_Node* jd_get_relation(jd_Node *node, jd_Relation relation);
 
 jd_Node* parent(jd_Node *node);
 jd_Node* nextSibling(jd_Node *node);
-jd_Node* prevSibling(jd_Node *node);
 jd_Node* firstChild(jd_Node *node);
+jd_Node* prevSibling(jd_Node *node);
 jd_Node* lastChild(jd_Node *node);
 
 jd_Type jd_id_type(const jd_Node *node);

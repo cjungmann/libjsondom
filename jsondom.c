@@ -68,8 +68,9 @@ EXPORT void jd_destroy(jd_Node *node)
 EXPORT jd_Node* jd_get_relation(jd_Node *node, jd_Relation relation)
 {
    jd_Node *retval = NULL;
-   if (node && relation>=0 && relation<= JD_LAST)
-      retval = ((jd_Node**)node)[relation];
+
+   if ( node && (unsigned int)relation <= JD_LAST )
+      retval = (jd_Node*)&((JNode*)node)[relation];
 
    return retval;
 }
