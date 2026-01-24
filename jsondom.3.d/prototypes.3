@@ -23,6 +23,15 @@
 .   cdef_arg void *payload
 .   cdef_end_stacked
 ..
+.de pt_jd_Relation
+.   cdef_start "struct" jd_Relation_e {} ,
+.   cdef_arg JD_PARENT \fR=\fP\ 0
+.   cdef_arg JD_NEXT
+.   cdef_arg JD_FIRST
+.   cdef_arg JD_PREVIOUS
+.   cdef_arg JD_LAST
+.   cdef_end_stacked
+..
 .de pt_jd_parse_file
 .   cdef_start bool jd_parse_file
 .   cdef_arg int fh
@@ -33,6 +42,12 @@
 .de pt_jd_destroy
 .   cdef_start void jd_destroy
 .   cdef_arg jd_Node *node
+.   cdef_end
+..
+.de pt_jd_get_relation
+.   cdef_start jd_Node *jd_get_relation
+.   cdef_arg jd_Node *node
+.   cdef_arg jd_Relation relation
 .   cdef_end
 ..
 .de pt_jd_serialize
