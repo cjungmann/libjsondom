@@ -432,7 +432,10 @@ bool JParser(int fh,
    while (isspace(chr))
    {
       if ((chars_read = read(fh, &chr, 1)) == 0 )
+      {
+         report_parse_error(pe, fh, "unexpected end-of-file");
          return false;
+      }
    }
 
    JNode *new_node = NULL;
