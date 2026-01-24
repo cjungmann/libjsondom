@@ -150,7 +150,10 @@ bool Object_ReadMember(int fh,
                goto early_exit;
             break;
          }
-      } // while
+      } // while (bytes_read = read...)
+
+      if (bytes_read == 0)
+         report_parse_error(pe, fh, "unexpected end-of-file");
 
    } //  if (JReadString())
 
