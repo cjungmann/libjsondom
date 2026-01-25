@@ -14,8 +14,8 @@ bool isJsonNumber(const char *str, bool *isFloatReturn)
    const char *ptr = str;
    const char *first_numeral = NULL;
 
-   // Leading sign is permitted and skipped if found:
-   if (*ptr == '-' || *ptr == '+')
+   // Leading minus sign is permitted and skipped if found:
+   if (*ptr == '-')
       ++ptr;
 
    while (*ptr)
