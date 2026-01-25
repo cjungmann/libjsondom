@@ -79,8 +79,8 @@ typedef void (*JNode_printer)(const JNode *node, int indent);
 struct JNode_s {
    JNode     *parent;           ///<  node that counts @e this as a child
    JNode     *nextSibling;      ///< node that follows @e this
-   JNode     *prevSibling;      ///< node that preceeds @e this
    JNode     *firstChild;       ///< first child node of @e this
+   JNode     *prevSibling;      ///< node that preceeds @e this
    JNode     *lastChild;        /**< @brief last child, this pointer exists to speed-up
                                  * building the document memory model.
                                  */
