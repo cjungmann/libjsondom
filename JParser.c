@@ -396,7 +396,9 @@ bool JParser(int fh,
                      JNode_set_true(temp_node);
                   else if ( 0 == strcmp(rsh.string, "false"))
                      JNode_set_false(temp_node);
-                  else  // unquoted values, integer, float, or syntax-error
+                  // If first character is a number or sign,
+                  // test for number and explicitly warn as such
+                  else if ( strchr("0123456789.-+", rsh.string[0]) )
                   {
                      bool isFloat;
                      if (isJsonNumber(rsh.string, &isFloat))
@@ -408,11 +410,15 @@ bool JParser(int fh,
                      }
                      else
                      {
-                        report_parse_error(pe, fh,
-                                           "values must be quoted unless a "
-                                           "number or a keyword");
+                        report_parse_error(pe, fh, "invalid number");
                         retval = false;
                      }
+                  }
+                  else
+                  {
+                     report_parse_error(pe, fh,
+                                        "unquoted values must be keywords or numbers");
+                     retval = false;
                   }
                } // if (chr='"') ; else
 
