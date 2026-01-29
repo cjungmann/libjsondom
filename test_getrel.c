@@ -1,3 +1,25 @@
+/**
+ * @file test_getrel.c
+ * @brief Rough test of navigation and value-printing functions.
+ *
+ * This simple test program was used to confirm proper execution
+ * of the new *jd_get_relation* function, and other new functions,
+ * *jd_node_value_length* and *jd_node_value* were also developed
+ * to help identify the current location in order to confirm one's
+ * position in the document.
+ *
+ * To build the executable, **getrel**, type the following at the
+ * command line:
+ *    make test
+ *
+ * The Makefile compiles source files with a *test_* prefix to an
+ * executable named after the string following *test_*.
+ *
+ * Prerequisites:
+ *   Besides the standard prerequisites for the jsondom library,
+ *   this utility makes use of my *contools* library:
+ *   https://github.com/cjungmann/libcontools
+ */
 #include "jsondom.h"
 #include <stdio.h>
 #include <stdlib.h>   // for malloc/free
@@ -11,8 +33,14 @@
 
 #define TEST_PATH "json_files/"
 
+/**
+ * generic node processor to enable switching-out of the test.
+ */
 typedef void(*jsontest)(jd_Node *node);
 
+/**
+ * @brief Displays some node details to aid navigation
+ */
 void print_node_details(const jd_Node *node)
 {
    if (node)
@@ -27,19 +55,25 @@ void print_node_details(const jd_Node *node)
          if (buffer)
          {
             jd_node_value(node, buffer, len);
-            printf("value: \033[35;1m%s\033[39;22m\n", buffer);
+            printf("Value: \033[35;1m%s\033[39;22m\n", buffer);
             free(buffer);
          }
       }
    }
 }
 
+/**
+ * Giving arrow key keystrings a name for better code comprehension
+ */
 #define KEYUP    "\033OA"
 #define KEYDOWN  "\033OB"
 #define KEYRIGHT "\033OC"
 #define KEYLEFT  "\033OD"
 
 
+/**
+ * @brief An implementation of @ref jsontest function pointer.
+ */
 void test_getrel(jd_Node *node)
 {
    char key_buff[10];
@@ -128,6 +162,10 @@ void open_json_file(const char *filename, jsontest tfunc)
 int main(int argc, const char **argv)
 {
    int retval = 0;
+
+   // The first command line argument, if provided, will
+   // furnish the path to the JSON file to parse.  Otherwise,
+   // the default file will be parsed:
    const char *filename = "json_files/good_object.json";
    if (argc>1)
       filename = argv[1];
