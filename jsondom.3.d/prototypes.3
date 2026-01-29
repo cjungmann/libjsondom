@@ -1,5 +1,5 @@
 .de pt_JDataType
-.   cdef_start "enum" "jd_Type_e" {} ,
+.   cdef_start "typedef enum" "jd_Type_e" {} ,
 .   cdef_arg JD_NULL
 .   cdef_arg JD_TRUE
 .   cdef_arg JD_FALSE
@@ -10,38 +10,38 @@
 .   cdef_arg JD_PROPERTY
 .   cdef_arg JD_OBJECT
 .   cdef_arg JD_TYPE_LIMIT
-.   cdef_end_stacked
+.   cdef_end_stacked jd_Type
 ..
 .de pt_JNode
-.   cdef_start "struct" "JNode_s" {} ;
+.   cdef_start "typedef struct" "jd_Node_s" {} ;
 .   cdef_arg JNode *parent
 .   cdef_arg JNode *nextSibling
 .   cdef_arg JNode *firstChild
 .   cdef_arg JNode *prevSibling
 .   cdef_arg JNode *lastChild
-.   cdef_arg JDataType type
+.   cdef_arg jd_Type type
 .   cdef_arg void *payload
-.   cdef_end_stacked
+.   cdef_end_stacked jd_Node
 ..
 .de pt_jd_Relation
-.   cdef_start "struct" jd_Relation_e {} ,
+.   cdef_start "typedef enum" jd_Relation_e {} ,
 .   cdef_arg JD_PARENT \fR=\fP\ 0
 .   cdef_arg JD_NEXT
 .   cdef_arg JD_FIRST
 .   cdef_arg JD_PREVIOUS
 .   cdef_arg JD_LAST
-.   cdef_end_stacked
+.   cdef_end_stacked jd_Relation
 ..
 .de pt_jd_parse_file
 .   cdef_start bool jd_parse_file
-.   cdef_arg int fh
+.   cdef_arg int fd
 .   cdef_arg jd_Node **node
 .   cdef_arg jd_ParseError *pe
 .   cdef_end
 ..
 .de pt_jd_destroy
 .   cdef_start void jd_destroy
-.   cdef_arg jd_Node *node
+.   cdef_arg jd_Node **node
 .   cdef_end
 ..
 .de pt_jd_get_relation
@@ -50,15 +50,27 @@
 .   cdef_arg jd_Relation relation
 .   cdef_end
 ..
+.de pt_jd_node_value_length
+.   cdef_start int jd_node_value_length
+.   cdef_arg "const jd_Node" *node
+.   cdef_end
+..
+.de pt_jd_node_value
+.   cdef_start int jd_node_value
+.   cdef_arg "const jd_Node" *node
+.   cdef_arg char *buffer
+.   cdef_arg int bufflen
+.   cdef_end
+..
 .de pt_jd_serialize
 .   cdef_start void jd_serialize
-.   cdef_arg int jd_out
+.   cdef_arg int fd
 .   cdef_arg "const jd_Node" *node
 .   cdef_end
 ..
 .de pt_jd_ParseError
-.  cdef_start struct jd_ParseError_s
+.  cdef_start "typedef struct" jd_ParseError_s
 .  cdef_arg int char_log
 .  cdef_arg "const char" *message
-.  cdef_end_stacked
+.  cdef_end_stacked jd_ParseError
 ..
