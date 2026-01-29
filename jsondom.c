@@ -3,6 +3,8 @@
 #include "JNode.h"
 #include "JParser.h"
 #include "jsondom.h"
+#include <string.h>  // for strlen
+#include <assert.h>
 
 #define EXPORT __attribute((visibility("default")))
 
@@ -175,6 +177,94 @@ EXPORT const void *jd_generic_value(const jd_Node *node)
       return ((JNode*)node)->payload;
    else
       return NULL;
+}
+
+EXPORT int jd_get_value_length(const jd_Node *node)
+{
+   JNode *jnode = (JNode*)node;
+
+   int len_required = 0;
+   switch(jnode->type)
+   {
+      case JD_NULL:
+      case JD_TRUE:
+         len_required = 5;
+         break;
+      case JD_FALSE:
+         len_required = 6;
+         break;
+      case JD_STRING:
+      case JD_INTEGER:
+      case JD_FLOAT:
+         len_required = 1 + strlen((char*)jnode->payload);
+         break;
+      case JD_ARRAY:
+         len_required = 8;  // *array*\0
+         break;
+      case JD_OBJECT:
+         len_required = 9;  // *object*\0
+         break;
+      case JD_PROPERTY:
+         len_required = jd_get_value_length(jnode->firstChild)
+            + jd_get_value_length(jnode->lastChild)
+            + 2;    // colon between, \0 after
+         break;
+      default:
+         // We shouldn't fall through to here:
+         assert(0);
+         break;
+   }
+
+   return len_required;
+}
+
+EXPORT int jd_stringify_value(const jd_Node *node, char *buffer, int bufflen)
+{
+   JNode *jnode = (JNode*)node;
+   int len_required = jd_get_value_length(node);
+   char *bptr;
+   int tlen;
+   if (bufflen >= len_required)
+   {
+      switch(jnode->type)
+      {
+         case JD_NULL:
+            memcpy(buffer, "null", len_required);
+            break;
+         case JD_TRUE:
+            memcpy(buffer, "true", len_required);
+            break;
+         case JD_FALSE:
+            memcpy(buffer, "false", len_required);
+            break;
+         case JD_STRING:
+         case JD_INTEGER:
+         case JD_FLOAT:
+            memcpy(buffer, jnode->payload, len_required);
+            break;
+         case JD_ARRAY:
+            memcpy(buffer, "*array*", len_required);
+            break;
+         case JD_OBJECT:
+            memcpy(buffer, "*object*", len_required);
+            break;
+         case JD_PROPERTY:
+            bptr = buffer;
+            tlen = jd_get_value_length(jnode->firstChild);
+            --tlen;  // don't count or print the '\0'
+            memcpy(bptr, jnode->firstChild->payload, tlen);
+            bptr += tlen;
+            *bptr++ = ':';
+            jd_stringify_value(jnode->lastChild, bptr, len_required - tlen - 1);
+            break;
+         default:
+            // We shouldn't fall through to here:
+            assert(0);
+            break;
+      }
+   }
+
+   return len_required;
 }
 
 EXPORT int jd_stringify_null(const jd_Node *node, char *buffer, int bufflen)

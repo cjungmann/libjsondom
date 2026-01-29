@@ -63,6 +63,9 @@ jd_Type jd_id_type(const jd_Node *node);
 const char *jd_id_name(const jd_Node *node);
 const void* jd_generic_value(const jd_Node *node);
 
+int jd_get_value_length(const jd_Node *node);
+int jd_stringify_value(const jd_Node *node, char *buffer, int bufflen);
+
 int jd_stringify_null(const jd_Node *node, char *buffer, int bufflen);
 int jd_stringify_true(const jd_Node *node, char *buffer, int bufflen);
 int jd_stringify_false(const jd_Node *node, char *buffer, int bufflen);
