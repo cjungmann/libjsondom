@@ -3,10 +3,8 @@
 #include <stdlib.h>   // for malloc/free
 #include <fcntl.h>    // for open()
 #include <unistd.h>   // for close()
-// #include <sys/stat.h> // for stat()
-// #include <errno.h>    // for errno
-// #include <string.h>   // for strerror()
-// #include <stdint.h>   // for INTMAX_MAX define/constant
+#include <contools.h>    // for get_keypress
+#include <string.h>      // strcmp
 #include <stdbool.h>
 #include <alloca.h>
 #include <assert.h>
@@ -15,52 +13,87 @@
 
 typedef void(*jsontest)(jd_Node *node);
 
-void print_node_option(const jd_Node *node, int index, const char *name)
+void print_node_details(const jd_Node *node)
 {
-   printf("%d: %-12s: %s (%p)\n", index, name, (node?"available":"empty"), (void*)node);
+   if (node)
+   {
+      const char *type = jd_id_name(node);
+      printf("Type:  \033[35;1m%s\033[39;22m\n", type);
+
+      int len = jd_get_value_length(node);
+      if (len)
+      {
+         char *buffer = (char*)malloc(len);
+         if (buffer)
+         {
+            jd_stringify_value(node, buffer, len);
+            printf("value: \033[35;1m%s\033[39;22m\n", buffer);
+            free(buffer);
+         }
+      }
+   }
 }
+
+#define KEYUP    "\033OA"
+#define KEYDOWN  "\033OB"
+#define KEYRIGHT "\033OC"
+#define KEYLEFT  "\033OD"
 
 
 void test_getrel(jd_Node *node)
 {
-   printf("You got to the test_getrel function.\n");
-   jd_Node *parent = jd_get_relation(node, JD_PARENT);
-   jd_Node *next_sib = jd_get_relation(node, JD_NEXT);
-   jd_Node *first_child = jd_get_relation(node, JD_FIRST);
-   jd_Node *prev_sib = jd_get_relation(node, JD_PREVIOUS);
+   char key_buff[10];
 
-   const char *tname = jd_id_name(node);
-
-   printf("\033[2J\033[H");
-   printf("Current node is a %s.\n", tname);
-
-   print_node_option(parent, 0, "parent");
-   print_node_option(next_sib, 1, "next_sib");
-   print_node_option(first_child, 2, "first_child");
-   print_node_option(prev_sib, 3, "prev_sib");
-
-   const char *prompt = "Type an index (0-3) to move, 'q' to quit.";
-
-   printf("\033[1G\033[2K");
-
-   while (1)
+   while(1)
    {
-      printf(prompt);
-      int ch = getchar();
-      printf("\033[1G\033[2K");
-      if (ch == 'q')
-         break;
-      else if (ch >='0' && ch <= '3')
+      // Collect pointers to kin:
+      jd_Node *parent = jd_get_relation(node, JD_PARENT);
+      jd_Node *next_sib = jd_get_relation(node, JD_NEXT);
+      jd_Node *first_child = jd_get_relation(node, JD_FIRST);
+      jd_Node *prev_sib = jd_get_relation(node, JD_PREVIOUS);
+
+      // Build the display, starting with a freshing of the screen
+      printf("\033[2J\033[H");
+
+      const char *bgcol="\033[48;5;236m";
+      const char *bgoff="\033[49m";
+      printf("Context map: angles point to available nodes.\n");
+      printf("   %s   %c   %s\n",  bgcol, (parent?'^':' '), bgoff );
+      printf("   %s%c  *  %c%s\n", bgcol, (prev_sib?'<':' '), (next_sib?'>':' '), bgoff);
+      printf("   %s   %c   %s\n",  bgcol, (first_child?'v':' '), bgoff);
+
+      print_node_details(node);
+      printf("\n");
+      printf("Use the arrow keys to move; type 'q' to quit.\n");
+      fflush(stdout);
+
+      // Declare out of loop to use as sentry:
+      jd_Node *rel = NULL;
+
+      // Wait and respond to user's keypress
+      while (1)
       {
-         jd_Node *rel = jd_get_relation(node, ch-'0');
-         if (rel)
+         const char *keyp = get_keystroke(key_buff, sizeof(key_buff));
+         if (0 == strcmp(keyp, "q"))
+            break;  // leaving rel==NULL to trigger outer-loop break
+         else if (0 == strcmp(keyp, KEYUP) && parent)
+            rel = parent;
+         else if (0 == strcmp(keyp, KEYRIGHT))
+            rel = next_sib;
+         else if (0 == strcmp(keyp, KEYDOWN))
+            rel = first_child;
+         else if (0 == strcmp(keyp, KEYLEFT))
+            rel = prev_sib;
+
+         if (rel != NULL)
          {
-            test_getrel(rel);
+            node = rel;
             break;
          }
-         else
-            printf("no relative, try again: %s", prompt);
       }
+
+      if (rel == NULL)
+         break;
    }
 }
 
@@ -75,7 +108,7 @@ void open_json_file(const char *filename, jsontest tfunc)
       if (jd_parse_file(fd, &node, &pe))
       {
          jd_serialize(STDOUT_FILENO, node);
-         printf("\n\n");
+         printf("\nPress any key to start examining nodes.\n");
          int ch = getchar();
          if (ch != 'q')
             (*tfunc)(node);
@@ -95,7 +128,10 @@ void open_json_file(const char *filename, jsontest tfunc)
 int main(int argc, const char **argv)
 {
    int retval = 0;
-   const char *filename="json_files/good_object.json";
+   const char *filename = "json_files/good_object.json";
+   if (argc>1)
+      filename = argv[1];
+
    open_json_file(filename, test_getrel);
 
    return retval;
