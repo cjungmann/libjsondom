@@ -1,5 +1,5 @@
 /**
- * @file JNode.h
+ * @file jd_Node.h
  * @brief Structs, enums, types, prototypes for JSON node
  */
 
@@ -8,6 +8,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>   // for NULL definition
+#include "jsondom.h"
 
 /**
  * @brief
@@ -21,73 +22,28 @@
  *    functions that must fail gracefully since they're meant
  *    to eventually  be used by the Bash builtin command.
  */
-typedef enum JNodeError_e {
+typedef enum jd_NodeError_e {
    JNE_SUCCESS = 0,       ///< 0 is success, as per convention
    JNE_FAILURE,           ///< generic unspecified error
    JNE_NULL_NODE,         ///< Forget to pass a node pointer
    JNE_INVALID_TYPE,      ///< Node type wrong for action to be taken
    JNE_OUT_OF_MEMORY,     ///< Not enough memory to complete action (like assignment)
    JNE_SMALL_BUFFER       ///< Buffer too small (or missing), especially for printing
-} JNodeError;
+} jd_NodeError;
 
 /**
  * @brief Global variable defined in Stringify.c
  */
-extern JNodeError jn_error;
-
-/**
- * @brief Defined #JNode instance types
- *
- * These values not only identify the specific type of a given JNode
- * instance, but are also used as indexes into arrays of string and
- * function pointers for printing and destroying #JNode instances.
- */
-typedef enum JDataType_e {
-   DT_NULL,         ///< constant NULL/empty value
-   DT_TRUE,         ///< constant true value
-   DT_FALSE,        ///< constant false value
-   DT_STRING,       ///< variable string value
-   DT_INTEGER,      ///< variable long value
-   DT_FLOAT,        ///< variable double value
-   DT_ARRAY,        ///< collection of value nodes
-   DT_PROPERTY,     /**< child of #DT_OBJECT that contains a #DT_STRING
-                     * and a value node
-                     */
-   DT_OBJECT,       ///< collection of #DT_PROPERTY nodes
-   DT_TYPE_LIMIT    ///< boundary value for testing valid #JDataType_e values
-} JDataType;
+extern jd_NodeError jn_error;
 
 /** typedef */
-typedef struct JNode_s JNode;
 /** typedef for destructor function pointer array */
-typedef void (*JNode_payload_dtor)(JNode *node);
+typedef void (*jd_Node_payload_dtor)(jd_Node *node);
 /** typedef for printer function pointer array */
-typedef void (*JNode_printer)(const JNode *node, int indent);
+typedef void (*jd_Node_printer)(const jd_Node *node, int indent);
 
 
 // An item is a member of a collection, array or object
-
-/**
- * @brief Memory representation of a JSON data element, including family links.
- *
- * The #JNode instance is mostly links to other #JNode instances, designed
- * to allow moving between nodes to specific relations.
- *
- * The #payload member is allocated separately according to the #JDataType
- * and the value of the instance.
- */
-struct JNode_s {
-   JNode     *parent;           ///<  node that counts @e this as a child
-   JNode     *nextSibling;      ///< node that follows @e this
-   JNode     *firstChild;       ///< first child node of @e this
-   JNode     *prevSibling;      ///< node that preceeds @e this
-   JNode     *lastChild;        /**< @brief last child, this pointer exists to speed-up
-                                 * building the document memory model.
-                                 */
-
-   JDataType type;              ///< #JDataType identity member
-   void      *payload;          ///< generic pointer to be cast according to the #type value.
-};
 
 /**
  * @defgroup AllFunctions All Functions
@@ -97,86 +53,86 @@ struct JNode_s {
 
 /**
  * @ingroup AllFunctions
- * @defgroup Existential Functions that create or destroy JNodes.
+ * @defgroup Existential Functions that create or destroy jd_Nodes.
  * @brief
- *    Functions that create and destroy JNode instances.
+ *    Functions that create and destroy jd_Node instances.
  * @{
  */
-void JNode_emancipate(JNode *node);
-void JNode_adopt(JNode *adoptee, JNode *parent, JNode *before);
-bool JNode_create(JNode **new_node, JNode *parent, JNode *before);
-void JNode_destroy(JNode **node);
-bool JNode_discard_payload(JNode *node);
+void jd_Node_emancipate(jd_Node *node);
+void jd_Node_adopt(jd_Node *adoptee, jd_Node *parent, jd_Node *before);
+bool jd_Node_create(jd_Node **new_node, jd_Node *parent, jd_Node *before);
+void jd_Node_destroy(jd_Node **node);
+bool jd_Node_discard_payload(jd_Node *node);
 /** @} */
 
 /**
  * @ingroup AllFunctions
- * @defgroup NodeSetters Functions to prepare JNodes
- * @brief Functions for setting a node's #JDataType and JNode::payload
+ * @defgroup NodeSetters Functions to prepare jd_Nodes
+ * @brief Functions for setting a node's #JDataType and jd_Node::payload
  * @{ 
  */
-bool JNode_set_true(JNode *node);
-bool JNode_set_false(JNode *node);
-bool JNode_set_null(JNode *node);
-bool JNode_set_integer(JNode *node, const char *value);
-bool JNode_set_float(JNode *node, const char *value);
-bool JNode_make_array(JNode *node);
-bool JNode_make_object(JNode *node);
+bool jd_Node_set_true(jd_Node *node);
+bool jd_Node_set_false(jd_Node *node);
+bool jd_Node_set_null(jd_Node *node);
+bool jd_Node_set_integer(jd_Node *node, const char *value);
+bool jd_Node_set_float(jd_Node *node, const char *value);
+bool jd_Node_make_array(jd_Node *node);
+bool jd_Node_make_object(jd_Node *node);
 /** @} */
 
 /**
  * @ingroup AllFunctions
- * @defgroup StringSetters Functions that attach a string to a JNode
+ * @defgroup StringSetters Functions that attach a string to a jd_Node
  * @{
  */
-bool JNode_take_string(JNode *node, const char *str);
-bool JNode_copy_string(JNode *node, const char *str);
+bool jd_Node_take_string(jd_Node *node, const char *str);
+bool jd_Node_copy_string(jd_Node *node, const char *str);
 /** @} */
 
 
 /**
  * @ingroup AllFunctions
- * @defgroup CollectionAugmenters Functions that insert a childe into a JNode
+ * @defgroup CollectionAugmenters Functions that insert a childe into a jd_Node
  * @{
  */
-bool JNode_make_null_property(JNode *node, const char *label);
-bool JNode_array_insert_element(JNode *array, JNode *new_element, JNode *element_before);
+bool jd_Node_make_null_property(jd_Node *node, const char *label);
+bool jd_Node_array_insert_element(jd_Node *array, jd_Node *new_element, jd_Node *element_before);
 /** @} */
 
 /**
  * @ingroup AllFunctions
- * @defgroup JNode_printers Functions for function pointer array
- * @brief Functions matching JNode_printer instance jNode_printers
+ * @defgroup jd_Node_printers Functions for function pointer array
+ * @brief Functions matching jd_Node_printer instance jNode_printers
  * @details
  *    Being aligned to the enum allows efficient indexed access to
  *    appropriate printer functions.
  * @{
  */
-void JNode_print_null(const JNode *node, int indent);
-void JNode_print_true(const JNode *node, int indent);
-void JNode_print_false(const JNode *node, int indent);
-void JNode_print_string(const JNode *node, int indent);
-void JNode_print_integer(const JNode *node, int indent);
-void JNode_print_float(const JNode *node, int indent);
-void JNode_print_array(const JNode *node, int indent);
-void JNode_print_property(const JNode *node, int indent);
-void JNode_print_object(const JNode *node, int indent);
+void jd_Node_print_null(const jd_Node *node, int indent);
+void jd_Node_print_true(const jd_Node *node, int indent);
+void jd_Node_print_false(const jd_Node *node, int indent);
+void jd_Node_print_string(const jd_Node *node, int indent);
+void jd_Node_print_integer(const jd_Node *node, int indent);
+void jd_Node_print_float(const jd_Node *node, int indent);
+void jd_Node_print_array(const jd_Node *node, int indent);
+void jd_Node_print_property(const jd_Node *node, int indent);
+void jd_Node_print_object(const jd_Node *node, int indent);
 /** @} */
 
-int JNode_stringify_null(const JNode *node, char *buffer, int bufflen);
-int JNode_stringify_true(const JNode *node, char *buffer, int bufflen);
-int JNode_stringify_false(const JNode *node, char *buffer, int bufflen);
-int JNode_stringify_string(const JNode *node, char *buffer, int bufflen);
-int JNode_stringify_integer(const JNode *node, char *buffer, int bufflen);
-int JNode_stringify_float(const JNode *node, char *buffer, int bufflen);
-int JNode_stringify_property(const JNode *node, char *buffer, int bufflen);
+int jd_Node_stringify_null(const jd_Node *node, char *buffer, int bufflen);
+int jd_Node_stringify_true(const jd_Node *node, char *buffer, int bufflen);
+int jd_Node_stringify_false(const jd_Node *node, char *buffer, int bufflen);
+int jd_Node_stringify_string(const jd_Node *node, char *buffer, int bufflen);
+int jd_Node_stringify_integer(const jd_Node *node, char *buffer, int bufflen);
+int jd_Node_stringify_float(const jd_Node *node, char *buffer, int bufflen);
+int jd_Node_stringify_property(const jd_Node *node, char *buffer, int bufflen);
 
 /**
  * @ingroup AllFunctions
- * @defgroup TreePrinter Function to print JNode tree to stdout
+ * @defgroup TreePrinter Function to print jd_Node tree to stdout
  * @{
  */
-void JNode_serialize(const JNode *node, int indent);
+void jd_Node_serialize(const jd_Node *node, int indent);
 /** @} */
 
 

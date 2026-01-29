@@ -1,14 +1,14 @@
-#include "JNode.h"
+#include "jsondom.h"
 #include "JParser.h"  // for Report_Error function pointer
 #include <string.h>   // for strlen, memcpy, etc
 #include <stdlib.h>   // for labs
 
-JNodeError jn_error = JNE_SUCCESS;
+jd_NodeError jn_error = JNE_SUCCESS;
 
-int JNode_stringify_generic(const JNode *node,
+int jd_Node_stringify_generic(const jd_Node *node,
                             char *buffer,
                             int bufflen,
-                            JDataType type,
+                            jd_Type type,
                             const char *value)
 {
    int retval = 0;
@@ -44,24 +44,24 @@ int JNode_stringify_generic(const JNode *node,
    return retval;
 }
 
-int JNode_stringify_null(const JNode *node, char *buffer, int bufflen)
+int jd_Node_stringify_null(const jd_Node *node, char *buffer, int bufflen)
 {
-   return JNode_stringify_generic(node, buffer, bufflen, DT_NULL, "null");
+   return jd_Node_stringify_generic(node, buffer, bufflen, JD_NULL, "null");
 }
 
-int JNode_stringify_true(const JNode *node, char *buffer, int bufflen)
+int jd_Node_stringify_true(const jd_Node *node, char *buffer, int bufflen)
 {
-   return JNode_stringify_generic(node, buffer, bufflen, DT_TRUE, "true");
+   return jd_Node_stringify_generic(node, buffer, bufflen, JD_TRUE, "true");
 }
 
-int JNode_stringify_false(const JNode *node, char *buffer, int bufflen)
+int jd_Node_stringify_false(const jd_Node *node, char *buffer, int bufflen)
 {
-   return JNode_stringify_generic(node, buffer, bufflen, DT_FALSE, "false");
+   return jd_Node_stringify_generic(node, buffer, bufflen, JD_FALSE, "false");
 }
 
-int JNode_stringify_string(const JNode *node, char *buffer, int bufflen)
+int jd_Node_stringify_string(const jd_Node *node, char *buffer, int bufflen)
 {
-   return JNode_stringify_generic(node, buffer, bufflen, DT_STRING, (char*)node->payload);
+   return jd_Node_stringify_generic(node, buffer, bufflen, JD_STRING, (char*)node->payload);
 }
 
 void limited_long_copy(long lval, char **ptr, char *end)
@@ -80,17 +80,17 @@ void limited_long_copy(long lval, char **ptr, char *end)
    }
 }
 
-int JNode_stringify_integer(const JNode *node, char *buffer, int bufflen)
+int jd_Node_stringify_integer(const jd_Node *node, char *buffer, int bufflen)
 {
-   return JNode_stringify_generic(node, buffer, bufflen, DT_INTEGER, (char*)node->payload);
+   return jd_Node_stringify_generic(node, buffer, bufflen, JD_INTEGER, (char*)node->payload);
 }
 
-int JNode_stringify_float(const JNode *node, char *buffer, int bufflen)
+int jd_Node_stringify_float(const jd_Node *node, char *buffer, int bufflen)
 {
-   return JNode_stringify_generic(node, buffer, bufflen, DT_FLOAT, (char*)node->payload);
+   return jd_Node_stringify_generic(node, buffer, bufflen, JD_FLOAT, (char*)node->payload);
 }
 
-int JNode_stringify_property(const JNode *node, char *buffer, int bufflen)
+int jd_Node_stringify_property(const jd_Node *node, char *buffer, int bufflen)
 {
    return 0;
 }

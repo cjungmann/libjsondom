@@ -20,13 +20,13 @@ void print_node_details(const jd_Node *node)
       const char *type = jd_id_name(node);
       printf("Type:  \033[35;1m%s\033[39;22m\n", type);
 
-      int len = jd_get_value_length(node);
+      int len = jd_node_value_length(node);
       if (len)
       {
          char *buffer = (char*)malloc(len);
          if (buffer)
          {
-            jd_stringify_value(node, buffer, len);
+            jd_node_value(node, buffer, len);
             printf("value: \033[35;1m%s\033[39;22m\n", buffer);
             free(buffer);
          }

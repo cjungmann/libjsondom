@@ -1,6 +1,5 @@
 /** @file jsondom.c */
 
-#include "JNode.h"
 #include "JParser.h"
 #include "jsondom.h"
 #include <string.h>  // for strlen
@@ -33,7 +32,7 @@ EXPORT bool jd_parse_file(int fh, jd_Node **new_tree, jd_ParseError *pe)
 {
    *new_tree = NULL;
 
-   JNode *node = NULL;
+   jd_Node *node = NULL;
    bool retval = JParser(fh, NULL, &node, 0, NULL, pe);
    if (retval)
    {
@@ -43,7 +42,7 @@ EXPORT bool jd_parse_file(int fh, jd_Node **new_tree, jd_ParseError *pe)
       {
          report_parse_error(pe, fh,
                             "forbidden characters following singleton root object");
-         JNode_destroy((jd_Node*)node);
+         jd_Node_destroy(&node);
          retval = false;
       }
    }
@@ -57,7 +56,7 @@ EXPORT bool jd_parse_file(int fh, jd_Node **new_tree, jd_ParseError *pe)
  */
 EXPORT void jd_destroy(jd_Node *node)
 {
-   JNode_destroy((JNode**)&node);
+   jd_Node_destroy((jd_Node**)&node);
 }
 
 /**
@@ -70,7 +69,7 @@ EXPORT void jd_destroy(jd_Node *node)
 EXPORT jd_Node* jd_get_relation(jd_Node *node, jd_Relation relation)
 {
    if ( node && (unsigned int)relation <= JD_LAST )
-      return (jd_Node*)((JNode**)node)[relation];
+      return (jd_Node*)((jd_Node**)node)[relation];
    else
       return NULL;
 }
@@ -82,7 +81,7 @@ EXPORT jd_Node* jd_get_relation(jd_Node *node, jd_Relation relation)
  */
 EXPORT jd_Node* parent(jd_Node *node)
 {
-   JNode *jnode = (JNode*)node;
+   jd_Node *jnode = (jd_Node*)node;
    if (node && jnode->parent)
       return jnode->parent;
    else
@@ -96,7 +95,7 @@ EXPORT jd_Node* parent(jd_Node *node)
  */
 EXPORT jd_Node* nextSibling(jd_Node *node)
 {
-   JNode *jnode = (JNode*)node;
+   jd_Node *jnode = (jd_Node*)node;
    if (node && jnode->nextSibling)
       return jnode->nextSibling;
    else
@@ -110,7 +109,7 @@ EXPORT jd_Node* nextSibling(jd_Node *node)
  */
 EXPORT jd_Node* prevSibling(jd_Node *node)
 {
-   JNode *jnode = (JNode*)node;
+   jd_Node *jnode = (jd_Node*)node;
    if (node && jnode->prevSibling)
       return jnode->prevSibling;
    else
@@ -124,7 +123,7 @@ EXPORT jd_Node* prevSibling(jd_Node *node)
  */
 EXPORT jd_Node* firstChild(jd_Node *node)
 {
-   JNode *jnode = (JNode*)node;
+   jd_Node *jnode = (jd_Node*)node;
    if (node && jnode->firstChild)
       return jnode->firstChild;
    else
@@ -138,7 +137,7 @@ EXPORT jd_Node* firstChild(jd_Node *node)
  */
 EXPORT jd_Node* lastChild(jd_Node *node)
 {
-   JNode *jnode = (JNode*)node;
+   jd_Node *jnode = (jd_Node*)node;
    if (node && jnode->lastChild)
       return jnode->lastChild;
    else
@@ -153,7 +152,7 @@ EXPORT jd_Node* lastChild(jd_Node *node)
 EXPORT jd_Type jd_id_type(const jd_Node *node)
 {
    if (node)
-      return ((JNode*)node)->type;
+      return ((jd_Node*)node)->type;
 
    return (jd_Type)-1;
 }
@@ -166,7 +165,7 @@ EXPORT jd_Type jd_id_type(const jd_Node *node)
 EXPORT const char *jd_id_name(const jd_Node *node)
 {
    if (node)
-      return TypeNames[((JNode*)node)->type];
+      return TypeNames[((jd_Node*)node)->type];
    else
       return "nonode";
 }
@@ -174,14 +173,14 @@ EXPORT const char *jd_id_name(const jd_Node *node)
 EXPORT const void *jd_generic_value(const jd_Node *node)
 {
    if (node)
-      return ((JNode*)node)->payload;
+      return ((jd_Node*)node)->payload;
    else
       return NULL;
 }
 
-EXPORT int jd_get_value_length(const jd_Node *node)
+EXPORT int jd_node_value_length(const jd_Node *node)
 {
-   JNode *jnode = (JNode*)node;
+   jd_Node *jnode = (jd_Node*)node;
 
    int len_required = 0;
    switch(jnode->type)
@@ -205,8 +204,8 @@ EXPORT int jd_get_value_length(const jd_Node *node)
          len_required = 9;  // *object*\0
          break;
       case JD_PROPERTY:
-         len_required = jd_get_value_length(jnode->firstChild)
-            + jd_get_value_length(jnode->lastChild)
+         len_required = jd_node_value_length(jnode->firstChild)
+            + jd_node_value_length(jnode->lastChild)
             + 2;    // colon between, \0 after
          break;
       default:
@@ -218,10 +217,10 @@ EXPORT int jd_get_value_length(const jd_Node *node)
    return len_required;
 }
 
-EXPORT int jd_stringify_value(const jd_Node *node, char *buffer, int bufflen)
+EXPORT int jd_node_value(const jd_Node *node, char *buffer, int bufflen)
 {
-   JNode *jnode = (JNode*)node;
-   int len_required = jd_get_value_length(node);
+   jd_Node *jnode = (jd_Node*)node;
+   int len_required = jd_node_value_length(node);
    char *bptr;
    int tlen;
    if (bufflen >= len_required)
@@ -250,12 +249,12 @@ EXPORT int jd_stringify_value(const jd_Node *node, char *buffer, int bufflen)
             break;
          case JD_PROPERTY:
             bptr = buffer;
-            tlen = jd_get_value_length(jnode->firstChild);
+            tlen = jd_node_value_length(jnode->firstChild);
             --tlen;  // don't count or print the '\0'
             memcpy(bptr, jnode->firstChild->payload, tlen);
             bptr += tlen;
             *bptr++ = ':';
-            jd_stringify_value(jnode->lastChild, bptr, len_required - tlen - 1);
+            jd_node_value(jnode->lastChild, bptr, len_required - tlen - 1);
             break;
          default:
             // We shouldn't fall through to here:
@@ -267,34 +266,9 @@ EXPORT int jd_stringify_value(const jd_Node *node, char *buffer, int bufflen)
    return len_required;
 }
 
-EXPORT int jd_stringify_null(const jd_Node *node, char *buffer, int bufflen)
-{
-   return JNode_stringify_null((JNode*)node, buffer, bufflen);
-}
-
-EXPORT int jd_stringify_true(const jd_Node *node, char *buffer, int bufflen)
-{
-   return JNode_stringify_true((JNode*)node, buffer, bufflen);
-}
-
-EXPORT int jd_stringify_false(const jd_Node *node, char *buffer, int bufflen)
-{
-   return JNode_stringify_false((JNode*)node, buffer, bufflen);
-}
-
-EXPORT int jd_stringify_integer(const jd_Node *node, char *buffer, int bufflen)
-{
-   return JNode_stringify_integer((JNode*)node, buffer, bufflen);
-}
-
-EXPORT int jd_stringify_float(const jd_Node *node, char *buffer, int bufflen)
-{
-   return JNode_stringify_float((JNode*)node, buffer, bufflen);
-}
-
 EXPORT void jd_serialize(int jd_out, const jd_Node *node)
 {
-   JNode_serialize((JNode*)node, 0);
+   jd_Node_serialize((jd_Node*)node, 0);
 }
 
 

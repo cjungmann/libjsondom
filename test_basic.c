@@ -199,9 +199,9 @@ void display_relation(jd_Node *node, jd_Relation rel)
    jd_Node *from_func = rfunc[rel](node);
 
    if (from_getrel == from_func)
-      printf("Results matched (%p)!\n", from_getrel);
+      printf("Results matched (%p)!\n", (void*)from_getrel);
    else
-      printf("Results NOT MATCHED (%p vs %p).\n", from_getrel, from_func);
+      printf("Results NOT MATCHED (%p vs %p).\n", (void*)from_getrel, (void*)from_func);
 }
 
 void test_get_relations(jd_Node *tree)

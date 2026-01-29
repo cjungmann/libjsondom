@@ -41,11 +41,11 @@ Error_Reporter Report_Error = Standard_Report_Error;
 /** Implementation of CollectionTools_s::Is_End_Char when processing an array */
 bool Array_IsEndChar(char chr) { return chr == ']'; }
 /** Implementation of CollectionTools_s::Coerce_type when processing an array */
-bool Array_CoerceType(JNode *node) { return JNode_make_array(node); }
+bool Array_CoerceType(jd_Node *node) { return jd_Node_make_array(node); }
 /** Implementation of CollectionTools_s::ReadMember when processing an array */
 bool Array_ReadMember(int           fh,
-                      JNode         *parent,
-                      JNode         **new_node,
+                      jd_Node       *parent,
+                      jd_Node       **new_node,
                       char          first_char,
                       char          *end_signal,
                       jd_ParseError *pe)
@@ -66,11 +66,11 @@ CollectionTools arrayTools = {
 /** Implementation of CollectionTools_s::Is_End_Char when processing an object */
 bool Object_IsEndChar(char chr) { return chr == '}'; }
 /** Implementation of CollectionTools_s::Coerce_type when processing an object */
-bool Object_CoerceType(JNode *node) { return JNode_make_object(node); }
+bool Object_CoerceType(jd_Node *node) { return jd_Node_make_object(node); }
 /** Implementation of CollectionTools_s::ReadMember when processing an object */
 bool Object_ReadMember(int fh,
-                       JNode         *parent,
-                       JNode         **new_node,
+                       jd_Node       *parent,
+                       jd_Node       **new_node,
                        char          first_char,
                        char          *end_signal,
                        jd_ParseError *pe)
@@ -95,7 +95,7 @@ bool Object_ReadMember(int fh,
    ReadStringInit(&rsh_label, first_char);
    if (JReadString(fh, &rsh_label, pe))
    {
-      JNode *value_node = NULL;
+      jd_Node *value_node = NULL;
       bool past_colon = false;
       char chr;
       ssize_t bytes_read;
@@ -114,15 +114,15 @@ bool Object_ReadMember(int fh,
             {
                // We have the label string and value node,
                // so we can build the property now:
-               JNode *prop_node = NULL;
-               if (JNode_create(&prop_node, parent, NULL))
+               jd_Node *prop_node = NULL;
+               if (jd_Node_create(&prop_node, parent, NULL))
                {
-                  prop_node->type = DT_PROPERTY;
-                  JNode *label_node = NULL;
-                  if (JNode_create(&label_node, prop_node, NULL))
+                  prop_node->type = JD_PROPERTY;
+                  jd_Node *label_node = NULL;
+                  if (jd_Node_create(&label_node, prop_node, NULL))
                   {
-                     JNode_take_string(label_node, StealReadString(&rsh_label));
-                     JNode_adopt(value_node, prop_node, NULL);
+                     jd_Node_take_string(label_node, StealReadString(&rsh_label));
+                     jd_Node_adopt(value_node, prop_node, NULL);
 
                      *new_node = prop_node;
                      retval = true;
@@ -131,7 +131,7 @@ bool Object_ReadMember(int fh,
                         *end_signal = temp_end_signal;
                   }
                   else
-                     JNode_destroy(&prop_node);
+                     jd_Node_destroy(&prop_node);
                }
             }
 
@@ -175,16 +175,16 @@ CollectionTools objectTools = {
 };
 
 /**
- * @brief Create a JNode collection according to the assigned tools.
+ * @brief Create a jd_Node collection according to the assigned tools.
  *
  * This function will create an Array or Object from the subordinate
  * data using the struct of function pointers to test and read
  * according to the collection type being created.
  */
 bool parse_collection(int             fh,
-                      JNode           *parent,
+                      jd_Node         *parent,
                       CollectionTools *tools,
-                      JNode           **node,
+                      jd_Node         **node,
                       jd_ParseError   *pe)
 {
    bool retval = false;
@@ -195,8 +195,8 @@ bool parse_collection(int             fh,
    ssize_t chars_read;
    char chr = '\0';
 
-   JNode *new_node = NULL;
-   if (JNode_create(&new_node, NULL, NULL))
+   jd_Node *new_node = NULL;
+   if (jd_Node_create(&new_node, NULL, NULL))
    {
       if ((*tools->coerce_type)(new_node))
       {
@@ -259,7 +259,7 @@ bool parse_collection(int             fh,
             }
 
             char end_char = '\0';
-            JNode *new_el = NULL;
+            jd_Node *new_el = NULL;
             if ((*tools->read_member)(fh, new_node, &new_el, chr, &end_char, pe))
             {
                needs_member = false;
@@ -293,7 +293,7 @@ bool parse_collection(int             fh,
          if (retval)
          {
             if (parent)
-               JNode_adopt(new_node, parent, NULL);
+               jd_Node_adopt(new_node, parent, NULL);
 
             *node = new_node;
             new_node = NULL;
@@ -307,21 +307,21 @@ bool parse_collection(int             fh,
   early_exit:
 
    if (new_node)
-      JNode_destroy(&new_node);
+      jd_Node_destroy(&new_node);
 
    return retval;
 }
 
 
 /**
- * @brief Create a JNode tree from a JSON document string.
+ * @brief Create a jd_Node tree from a JSON document string.
  * @details
  *    Reads directly from a stream to create a Document Object
  *    Model (DOM) of a JSON document.
  *
  * @param fh          Handle to an open JSON file
- * @param parent      JNode under which new JNodes will be inserted
- * @param node        pointer to address of the newly-created JNode
+ * @param parent      jd_Node under which new jd_Nodes will be inserted
+ * @param node        pointer to address of the newly-created jd_Node
  * @param first_char  character that introduces the current string
  * @param end_signal  pointer to which the string-end-signalling
  *                    character will be copied for later
@@ -329,8 +329,8 @@ bool parse_collection(int             fh,
  * @return True if successful, false if failed
  */
 bool JParser(int fh,
-             JNode         *parent,
-             JNode         **node,
+             jd_Node       *parent,
+             jd_Node       **node,
              char          first_char,
              char          *end_signal,
              jd_ParseError *pe)
@@ -349,7 +349,7 @@ bool JParser(int fh,
       }
    }
 
-   JNode *new_node = NULL;
+   jd_Node *new_node = NULL;
 
    RSHandle rsh = { 0 };
 
@@ -382,20 +382,20 @@ bool JParser(int fh,
             if (end_signal)
                *end_signal = rsh.end_signal;
 
-            JNode *temp_node;
+            jd_Node *temp_node;
             // Defer adoption by parent until successfully parsing child:
-            if (JNode_create(&temp_node, NULL, NULL))
+            if (jd_Node_create(&temp_node, NULL, NULL))
             {
                if (chr == '"')
-                  JNode_take_string(temp_node, StealReadString(&rsh));
+                  jd_Node_take_string(temp_node, StealReadString(&rsh));
                else
                {
                   if ( 0 == strcmp(rsh.string, "null"))
-                     JNode_set_null(temp_node);
+                     jd_Node_set_null(temp_node);
                   else if ( 0 == strcmp(rsh.string, "true"))
-                     JNode_set_true(temp_node);
+                     jd_Node_set_true(temp_node);
                   else if ( 0 == strcmp(rsh.string, "false"))
-                     JNode_set_false(temp_node);
+                     jd_Node_set_false(temp_node);
                   // If first character is a number or sign,
                   // test for number and explicitly warn as such
                   else if ( strchr("0123456789.-+", rsh.string[0]) )
@@ -404,9 +404,9 @@ bool JParser(int fh,
                      if (isJsonNumber(rsh.string, &isFloat))
                      {
                         if (isFloat)
-                           JNode_set_float(temp_node, rsh.string);
+                           jd_Node_set_float(temp_node, rsh.string);
                         else
-                           JNode_set_integer(temp_node, rsh.string);
+                           jd_Node_set_integer(temp_node, rsh.string);
                      }
                      else
                      {
@@ -425,13 +425,13 @@ bool JParser(int fh,
                if (retval)
                {
                   if (parent)
-                     JNode_adopt(temp_node, parent, NULL);
+                     jd_Node_adopt(temp_node, parent, NULL);
 
                   new_node = temp_node;
                }
                else
-                  JNode_destroy(&temp_node);
-            } // if JNode_create
+                  jd_Node_destroy(&temp_node);
+            } // if jd_Node_create
          }
          else // if JReadString failed:
          {
@@ -478,7 +478,7 @@ bool confirm_no_further_file_content(int fh)
 #ifdef JPARSER_MAIN
 
 #include "CharBag.c"
-#include "JNode.c"
+#include "jd_Node.c"
 #include "JReadString.c"
 
 int main(int argc, const char **argv)
@@ -492,11 +492,11 @@ int main(int argc, const char **argv)
    {
       jd_ParseError pe = {0};
       char end_char;
-      JNode *root;
+      jd_Node *root;
       if (JParser(fh, NULL, &root, 0, &end_char, &pe))
       {
-         JNode_serialize(root, 0);
-         JNode_destroy(&root);
+         jd_Node_serialize(root, 0);
+         jd_Node_destroy(&root);
       }
 
       close(fh);

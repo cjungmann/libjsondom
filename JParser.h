@@ -34,11 +34,11 @@ typedef struct CollectionTools_s CollectionTools;
 /** typedef member of CollectionTools */
 typedef bool (*Is_End_Char)(char chr);
 /** typedef member of CollectionTools */
-typedef bool (*Coerce_Type)(JNode *node);
+typedef bool (*Coerce_Type)(jd_Node *node);
 /** typedef member of CollectionTools */
 typedef bool (*Read_Member)(int fh,
-                            JNode *parent,
-                            JNode **new_node,
+                            jd_Node *parent,
+                            jd_Node **new_node,
                             char first_char,
                             char *signal_char,
                             jd_ParseError *pe
@@ -51,7 +51,7 @@ typedef bool (*Read_Member)(int fh,
  *    to perform context-dependent parsing.  Once the context is
  *    determined, the appropriate CollectionTools instance will be
  *    used to test for completion (Is_End_Char), transform the
- *    in-process JNode to the appropriate type (Coerce_Type), or to
+ *    in-process jd_Node to the appropriate type (Coerce_Type), or to
  *    to read properties for objects or elements for arrays
  *    (Read_Member).  This is somewhat more efficient but also
  *    makes the code easier to understand.
@@ -67,8 +67,8 @@ struct CollectionTools_s {
    Coerce_Type    coerce_type; /**<
                                 * @brief
                                 *    Pointer to function that will be
-                                *    used to convert a generic JNode
-                                *    into the specific JNode
+                                *    used to convert a generic jd_Node
+                                *    into the specific jd_Node
                                 *    collection type required
                                 */
    Read_Member    read_member; /**<
@@ -89,8 +89,8 @@ struct CollectionTools_s {
  * @ingroup AllFunctions
  */
 bool JParser(int           fh,
-             JNode         *parent,
-             JNode         **node,
+             jd_Node         *parent,
+             jd_Node         **node,
              char          first_char,
              char          *signal_char,
              jd_ParseError *parse_error
