@@ -102,9 +102,9 @@ void JNode_adopt(JNode *adoptee, JNode *parent, JNode *before)
    {
       if (parent->lastChild)
       {
+         adoptee->prevSibling = parent->lastChild;
          parent->lastChild->nextSibling = adoptee;
          parent->lastChild = adoptee;
-         adoptee->prevSibling = parent->lastChild;
       }
       else
          parent->firstChild = parent->lastChild = adoptee;
