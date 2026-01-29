@@ -23,7 +23,7 @@ LDFLAGS =
 CFLAGS += -fPIC
 LFLAGS += --shared
 
-TEST_LIBS = -ltinfo
+TEST_LIBS =  -lcontools -ltinfo
 
 # Build module list (info make -> "Functions" -> "File Name Functions")
 MODULES = $(addsuffix .o,$(filter-out ./test_%,$(basename $(wildcard $(SRC)/*.c))))
