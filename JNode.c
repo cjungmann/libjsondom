@@ -114,7 +114,7 @@ void jd_Node_adopt(jd_Node *adoptee, jd_Node *parent, jd_Node *before)
 
 /**
  * @brief
- *    Returns a new jd_Node instance of type DT_NULL.
+ *    Returns a new jd_Node instance of type JD_NULL.
  * @details
  *    Uses @c malloc to create a new jd_Node instance, using
  *    #jd_Node_adopt to incorporate the new node into an existing
@@ -136,7 +136,7 @@ bool jd_Node_create(jd_Node **new_node, jd_Node *parent, jd_Node *before)
    if (node)
    {
       memset(node, 0, sizeof(jd_Node));
-      node->type = DT_NULL;
+      node->type = JD_NULL;
 
       // Adjust family relationships
       if (parent)
@@ -198,43 +198,43 @@ bool jd_Node_discard_payload(jd_Node *node)
 }
 
 /**
- * @brief Safely converts an initialized jd_Node of any type to a DT_NULL jd_Node.
+ * @brief Safely converts an initialized jd_Node of any type to a JD_NULL jd_Node.
  * @param node   jd_Node to be converted
  * @return true for success, false for failure
  */
 bool jd_Node_set_null(jd_Node *node)
 {
    jd_Node_discard_payload(node);
-   node->type = DT_NULL;
+   node->type = JD_NULL;
    return true;
 }
 
 /**
- * @brief Safely converts an initialized jd_Node of any type to a DT_TRUE jd_Node.
+ * @brief Safely converts an initialized jd_Node of any type to a JD_TRUE jd_Node.
  * @param node   jd_Node to be converted
  * @return true for success, false for failure
  */
 bool jd_Node_set_true(jd_Node *node)
 {
    jd_Node_discard_payload(node);
-   node->type = DT_TRUE;
+   node->type = JD_TRUE;
    return true;
 }
 
 /**
- * @brief Safely converts an initialized jd_Node of any type to a DT_FALSE jd_Node.
+ * @brief Safely converts an initialized jd_Node of any type to a JD_FALSE jd_Node.
  * @param node   jd_Node to be converted
  * @return true for success, false for failure
  */
 bool jd_Node_set_false(jd_Node *node)
 {
    jd_Node_discard_payload(node);
-   node->type = DT_FALSE;
+   node->type = JD_FALSE;
    return true;
 }
 
 /**
- * @brief Safely converts an initialized jd_Node of any type to a DT_INTEGER jd_Node.
+ * @brief Safely converts an initialized jd_Node of any type to a JD_INTEGER jd_Node.
  * @param node   jd_Node to be converted
  * @param value  value to be set in the payload
  * @return true for success, false for failure
@@ -243,7 +243,7 @@ bool jd_Node_set_integer(jd_Node *node, const char *value)
 {
    if (jd_Node_copy_string(node, value))
    {
-      node->type = DT_INTEGER;
+      node->type = JD_INTEGER;
       return true;
    }
 
@@ -251,7 +251,7 @@ bool jd_Node_set_integer(jd_Node *node, const char *value)
 }
 
 /**
- * @brief Safely converts an initialized jd_Node of any type to a DT_FLOAT jd_Node.
+ * @brief Safely converts an initialized jd_Node of any type to a JD_FLOAT jd_Node.
  * @param node   jd_Node to be converted
  * @param value  value to be set in the payload
  * @return true for success, false for failure
@@ -260,7 +260,7 @@ bool jd_Node_set_float(jd_Node *node, const char *value)
 {
    if (jd_Node_copy_string(node, value))
    {
-      node->type = DT_FLOAT;
+      node->type = JD_FLOAT;
       return true;
    }
 
@@ -278,7 +278,7 @@ bool jd_Node_take_string(jd_Node *node, const char *str)
    jd_Node_discard_payload(node);
    node->payload = (void*)str;
 
-   node->type = DT_STRING;
+   node->type = JD_STRING;
 
    return true;
 }
@@ -297,7 +297,7 @@ bool jd_Node_copy_string(jd_Node *node, const char *str)
       new_payload[len] = '\0';
       node->payload = (void*)new_payload;
 
-      node->type = DT_STRING;
+      node->type = JD_STRING;
 
       return true;
    }
@@ -313,7 +313,7 @@ bool jd_Node_make_null_property(jd_Node *node, const char *label)
    jd_Node_discard_payload(node);
    if (node->firstChild)
       jd_Node_destroy(&(node->firstChild));
-   node->type = DT_PROPERTY;
+   node->type = JD_PROPERTY;
 
    jd_Node *label_node, *value_node;
    if (jd_Node_create(&label_node, node, NULL))
@@ -333,14 +333,14 @@ bool jd_Node_make_null_property(jd_Node *node, const char *label)
 }
 
 /**
- * @brief Safely converts an initialized jd_Node of any type to an empty DT_ARRAY jd_Node.
+ * @brief Safely converts an initialized jd_Node of any type to an empty JD_ARRAY jd_Node.
  * @param node   jd_Node to be converted
  * @return true for success, false for failure
  */
 bool jd_Node_make_array(jd_Node *node)
 {
    jd_Node_discard_payload(node);
-   node->type = DT_ARRAY;
+   node->type = JD_ARRAY;
 
    return true;
 }
@@ -354,20 +354,20 @@ bool jd_Node_make_array(jd_Node *node)
  */
 bool jd_Node_array_insert_element(jd_Node *array, jd_Node *new_element, jd_Node *element_before)
 {
-   assert(array->type == DT_ARRAY);
+   assert(array->type == JD_ARRAY);
    jd_Node_adopt(new_element, array, element_before);
    return true;
 }
 
 /**
- * @brief Safely converts an initialized jd_Node of any type to an empty DT_OBJECT jd_Node.
+ * @brief Safely converts an initialized jd_Node of any type to an empty JD_OBJECT jd_Node.
  * @param node   jd_Node to be converted
  * @return true for success, false for failure
  */
 bool jd_Node_make_object(jd_Node *node)
 {
    jd_Node_discard_payload(node);
-   node->type = DT_OBJECT;
+   node->type = JD_OBJECT;
 
    return true;
 }
@@ -391,13 +391,13 @@ jd_Node_printer jNode_printers[] = {
 };
 
 /**
- * @brief DT_NULL jd_Node printing function for jNode_printers array
+ * @brief JD_NULL jd_Node printing function for jNode_printers array
  * @param node   jd_Node to be printed
  * @param indent multiple of indents to print before value
  */
 void jd_Node_print_null(const jd_Node *node, int indent)
 {
-   assert(node && node->type==DT_NULL);
+   assert(node && node->type==JD_NULL);
    if (indent<0)
       printf("null");
    else
@@ -405,13 +405,13 @@ void jd_Node_print_null(const jd_Node *node, int indent)
 }
 
 /**
- * @brief DT_TRUE jd_Node printing function for jNode_printers array
+ * @brief JD_TRUE jd_Node printing function for jNode_printers array
  * @param node   jd_Node to be printed
  * @param indent multiple of indents to print before value
  */
 void jd_Node_print_true(const jd_Node *node, int indent)
 {
-   assert(node && node->type==DT_TRUE);
+   assert(node && node->type==JD_TRUE);
    if (indent<0)
       printf("true");
    else
@@ -419,13 +419,13 @@ void jd_Node_print_true(const jd_Node *node, int indent)
 }
 
 /**
- * @brief DT_FALSE jd_Node printing function for jNode_printers array
+ * @brief JD_FALSE jd_Node printing function for jNode_printers array
  * @param node   jd_Node to be printed
  * @param indent multiple of indents to print before value
  */
 void jd_Node_print_false(const jd_Node *node, int indent)
 {
-   assert(node && node->type==DT_FALSE);
+   assert(node && node->type==JD_FALSE);
    if (indent<0)
       printf("false");
    else
@@ -433,13 +433,13 @@ void jd_Node_print_false(const jd_Node *node, int indent)
 }
 
 /**
- * @brief DT_STRING jd_Node printing function for jNode_printers array
+ * @brief JD_STRING jd_Node printing function for jNode_printers array
  * @param node   jd_Node to be printed
  * @param indent multiple of indents to print before value
  */
 void jd_Node_print_string(const jd_Node *node, int indent)
 {
-   assert(node && node->type==DT_STRING);
+   assert(node && node->type==JD_STRING);
    if (indent<0)
       printf("\"%s\"", (char*)node->payload);
    else
@@ -447,13 +447,13 @@ void jd_Node_print_string(const jd_Node *node, int indent)
 }
 
 /**
- * @brief DT_INTEGER jd_Node printing function for jNode_printers array
+ * @brief JD_INTEGER jd_Node printing function for jNode_printers array
  * @param node   jd_Node to be printed
  * @param indent multiple of indents to print before value
  */
 void jd_Node_print_integer(const jd_Node *node, int indent)
 {
-   assert(node && node->type==DT_INTEGER);
+   assert(node && node->type==JD_INTEGER);
    if (indent<0)
       printf("%s", (char*)node->payload);
    else
@@ -461,13 +461,13 @@ void jd_Node_print_integer(const jd_Node *node, int indent)
 }
 
 /**
- * @brief DT_FLOAT jd_Node printing function for jNode_printers array
+ * @brief JD_FLOAT jd_Node printing function for jNode_printers array
  * @param node   jd_Node to be printed
  * @param indent multiple of indents to print before value
  */
 void jd_Node_print_float(const jd_Node *node, int indent)
 {
-   assert(node && node->type==DT_FLOAT);
+   assert(node && node->type==JD_FLOAT);
    if (indent<0)
       printf("%s", (char*)node->payload);
    else
@@ -475,14 +475,14 @@ void jd_Node_print_float(const jd_Node *node, int indent)
 }
 
 /**
- * @brief DT_ARRAY jd_Node printing function for jNode_printers array
+ * @brief JD_ARRAY jd_Node printing function for jNode_printers array
  * @details Recursively-prints child nodes with incremented indent.
  * @param node   jd_Node to be printed
  * @param indent multiple of indents to print before value
  */
 void jd_Node_print_array(const jd_Node *node, int indent)
 {
-   assert(node && node->type==DT_ARRAY);
+   assert(node && node->type==JD_ARRAY);
 
    jd_Node *child;
    int subindent = indent;
@@ -510,19 +510,19 @@ void jd_Node_print_array(const jd_Node *node, int indent)
 }
 
 /**
- * @brief DT_PROPERTY jd_Node printing function for jNode_printers array
+ * @brief JD_PROPERTY jd_Node printing function for jNode_printers array
  * @param node   jd_Node to be printed
  * @param indent multiple of indents to print before value
  */
 void jd_Node_print_property(const jd_Node *node, int indent)
 {
-   assert(node && node->type==DT_PROPERTY);
-   assert(node->firstChild && node->firstChild->type == DT_STRING);
+   assert(node && node->type==JD_PROPERTY);
+   assert(node->firstChild && node->firstChild->type == JD_STRING);
    assert(node->firstChild->nextSibling == node->lastChild);
 
    const char *label = (char*)node->firstChild->payload;
    jd_Node *value = node->lastChild;
-   bool is_collection = value->type >= DT_ARRAY;
+   bool is_collection = value->type >= JD_ARRAY;
 
    if (indent < 0)
    {
@@ -541,14 +541,14 @@ void jd_Node_print_property(const jd_Node *node, int indent)
 }
 
 /**
- * @brief DT_OBJECT jd_Node printing function for jNode_printers array
+ * @brief JD_OBJECT jd_Node printing function for jNode_printers array
  * @details Recursively-prints child nodes with incremented indent.
  * @param node   jd_Node to be printed
  * @param indent multiple of indents to print before value
  */
 void jd_Node_print_object(const jd_Node *node, int indent)
 {
-   assert(node && node->type==DT_OBJECT);
+   assert(node && node->type==JD_OBJECT);
 
    jd_Node *child;
    int subindent = indent;
