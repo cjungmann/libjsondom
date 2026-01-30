@@ -1,7 +1,7 @@
 #ifndef JPARSER_H
 #define JPARSER_H
 
-#include "JNode.h"
+#include "jd_Node.h"
 #include "jsondom.h"
 
 void report_parse_error(jd_ParseError *pe, int fh, const char *message);

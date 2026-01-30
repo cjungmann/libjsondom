@@ -5,7 +5,7 @@
 #include <stdio.h>    // printf
 #include <assert.h>
 
-#include "JNode.h"
+#include "jd_Node.h"
 
 /**
  * @brief Array of type names aligned to #JDataType enumeration.
