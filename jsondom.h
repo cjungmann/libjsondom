@@ -76,7 +76,7 @@ typedef enum jd_Relation_e {
 
 
 bool jd_parse_file(int fh, jd_Node **new_tree, jd_ParseError *pe);
-void jd_destroy(jd_Node *node);
+void jd_destroy(jd_Node **node);
 
 jd_Node* jd_get_relation(jd_Node *node, jd_Relation relation);
 

@@ -54,7 +54,7 @@ EXPORT bool jd_parse_file(int fh, jd_Node **new_tree, jd_ParseError *pe)
  * @brief Free memory in the memory tree
  * @param node   Pointer to node to be destroyed
  */
-EXPORT void jd_destroy(jd_Node *node)
+EXPORT void jd_destroy(jd_Node **node)
 {
    jd_Node_destroy((jd_Node**)&node);
 }
