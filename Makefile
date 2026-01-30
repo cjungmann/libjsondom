@@ -30,6 +30,7 @@ MODULES = $(addsuffix .o,$(filter-out ./test_%,$(basename $(wildcard $(SRC)/*.c)
 TEST_TARGETS = $(subst test_,,$(filter ./test_%,$(basename $(wildcard $(SRC)/*.c))))
 TEST_SOURCES = $(addsuffix .c,$(filter ./test_%,$(basename $(wildcard $(SRC)/*.c))))
 TEST_MODULES = $(addsuffix .o,$(filter ./test_%,$(basename $(wildcard $(SRC)/*.c))))
+TEST_UNITS = $(basename $(wildcard $(SRC)/*.c))
 
 # Libraries need header files.  Set the following accordingly:
 HEADERS = $(TARGET_ROOT).h
@@ -133,6 +134,7 @@ clean:
 	rm -f $(TARGET_TEST)
 	rm -f $(MODULES)
 	rm -f $(TEST_TARGETS)
+	rm -f $(TEST_UNITS)
 
 help:
 	@echo "Makefile options:"
