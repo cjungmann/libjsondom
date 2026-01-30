@@ -12,13 +12,13 @@
 .   cdef_arg JD_TYPE_LIMIT
 .   cdef_end_stacked jd_Type
 ..
-.de pt_JNode
+.de pt_jd_Node
 .   cdef_start "typedef struct" "jd_Node_s" {} ;
-.   cdef_arg JNode *parent
-.   cdef_arg JNode *nextSibling
-.   cdef_arg JNode *firstChild
-.   cdef_arg JNode *prevSibling
-.   cdef_arg JNode *lastChild
+.   cdef_arg jd_Node *parent
+.   cdef_arg jd_Node *nextSibling
+.   cdef_arg jd_Node *firstChild
+.   cdef_arg jd_Node *prevSibling
+.   cdef_arg jd_Node *lastChild
 .   cdef_arg jd_Type type
 .   cdef_arg void *payload
 .   cdef_end_stacked jd_Node
