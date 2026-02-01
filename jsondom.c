@@ -56,7 +56,7 @@ EXPORT bool jd_parse_file(int fh, jd_Node **new_tree, jd_ParseError *pe)
  */
 EXPORT void jd_destroy(jd_Node **node)
 {
-   jd_Node_destroy((jd_Node**)&node);
+   jd_Node_destroy(node);
 }
 
 /**
