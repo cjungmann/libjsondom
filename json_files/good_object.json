@@ -1,5 +1,5 @@
 {
-   "name":"John Doe"
+   "name":"John Doe",
    "address": {
       "street" : "1234 Main Street",
       "city"   : "Townsville",
