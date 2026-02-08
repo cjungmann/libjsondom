@@ -12,7 +12,7 @@ MAN_PAGE = $(TARGET_ROOT).$(MAN_SECTION)
 # Change if source files not in base directory:
 SRC = .
 
-CFLAGS = -Wall -Werror -std=c99 -pedantic -ggdb -fvisibility=hidden
+CFLAGS = -Wall -Werror -std=c99 -pedantic -ggdb -fvisibility=hidden -D_POSIX_C_SOURCE=200809L
 LFLAGS =
 LDFLAGS =
 
