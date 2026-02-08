@@ -178,7 +178,7 @@ void jd_Node_destroy(jd_Node **node)
       if ((*node)->payload)
          free((void*)(*node)->payload);
       if ((*node)->name)
-         free((*node)->name);
+         free((void*)(*node)->name);
 
       free(*node);
       *node = NULL;
