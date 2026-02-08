@@ -39,6 +39,7 @@ struct jd_Node_s {
 
    jd_Type type;             ///< #JDataType identity member
    void    *payload;         ///< generic pointer to be cast according to the #type value.
+   char    *name;            ///< property name if needed, NULL value if not
 };
 
 
