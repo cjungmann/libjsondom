@@ -29,17 +29,17 @@ typedef struct jd_Node_s jd_Node;
  * and the value of the instance.
  */
 struct jd_Node_s {
-   jd_Node *parent;          ///<  node that counts @e this as a child
-   jd_Node *nextSibling;     ///< node that follows @e this
-   jd_Node *firstChild;      ///< first child node of @e this
-   jd_Node *prevSibling;     ///< node that preceeds @e this
-   jd_Node *lastChild;       /**< @brief last child, this pointer exists to speed-up
-                             * building the document memory model.
-                             */
+   jd_Node    *parent;          ///<  node that counts @e this as a child
+   jd_Node    *nextSibling;     ///< node that follows @e this
+   jd_Node    *firstChild;      ///< first child node of @e this
+   jd_Node    *prevSibling;     ///< node that preceeds @e this
+   jd_Node    *lastChild;       /**< @brief last child, this pointer exists to speed-up
+                                * building the document memory model.
+                                */
 
-   jd_Type type;             ///< #JDataType identity member
-   void    *payload;         ///< generic pointer to be cast according to the #type value.
-   char    *name;            ///< property name if needed, NULL value if not
+   jd_Type    type;             ///< #JDataType identity member
+   void       *payload;         ///< generic pointer to be cast according to the #type value.
+   const char *name;            ///< property name if needed, NULL value if not
 };
 
 
