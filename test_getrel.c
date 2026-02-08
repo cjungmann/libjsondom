@@ -147,7 +147,7 @@ void open_json_file(const char *filename, jsontest tfunc)
          if (ch != 'q')
             (*tfunc)(node);
 
-         jd_destroy(node);
+         jd_destroy(&node);
       }
       else
          printf("Failed to parse '%s': '%s'\n", filename, pe.message);

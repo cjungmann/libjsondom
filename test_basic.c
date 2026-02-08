@@ -154,7 +154,7 @@ bool parse_test_file(const char *filename)
          printf("Successfully parsed file!\n");
 
          // jd_serialize(0, node);
-         jd_destroy(node);
+         jd_destroy(&node);
          retval = true;
       }
       else
@@ -233,7 +233,7 @@ bool test_individual_file(const char *filename)
       {
          test_node_tree(node);
          test_get_relations(node);
-         jd_destroy(node);
+         jd_destroy(&node);
          retval = true;
       }
    }
