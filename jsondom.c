@@ -208,11 +208,6 @@ EXPORT int jd_node_value_length(const jd_Node *node)
       case JD_OBJECT:
          len_required = 9;  // *object*\0
          break;
-      case JD_PROPERTY:
-         len_required = jd_node_value_length(jnode->firstChild)
-            + jd_node_value_length(jnode->lastChild)
-            + 2;    // colon between, \0 after
-         break;
       default:
          // We shouldn't fall through to here:
          assert(0);
