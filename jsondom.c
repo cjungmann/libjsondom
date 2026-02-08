@@ -183,6 +183,11 @@ EXPORT int jd_node_value_length(const jd_Node *node)
    jd_Node *jnode = (jd_Node*)node;
 
    int len_required = 0;
+
+   // For names, we need room for character plus ':' delimiter:
+   if (node->name)
+      len_required = strlen(node->name) + 1;
+
    switch(jnode->type)
    {
       case JD_NULL:
@@ -221,40 +226,37 @@ EXPORT int jd_node_value(const jd_Node *node, char *buffer, int bufflen)
 {
    jd_Node *jnode = (jd_Node*)node;
    int len_required = jd_node_value_length(node);
-   char *bptr;
-   int tlen;
+   char *bptr = buffer;
    if (bufflen >= len_required)
    {
+      if (node->name)
+      {
+         bptr = stpcpy(bptr,node->name);
+         *bptr = ':';
+         ++bptr;
+      }
+
       switch(jnode->type)
       {
          case JD_NULL:
-            memcpy(buffer, "null", len_required);
+            memcpy(bptr, "null", len_required);
             break;
          case JD_TRUE:
-            memcpy(buffer, "true", len_required);
+            memcpy(bptr, "true", len_required);
             break;
          case JD_FALSE:
-            memcpy(buffer, "false", len_required);
+            memcpy(bptr, "false", len_required);
             break;
          case JD_STRING:
          case JD_INTEGER:
          case JD_FLOAT:
-            memcpy(buffer, jnode->payload, len_required);
+            memcpy(bptr, jnode->payload, len_required);
             break;
          case JD_ARRAY:
-            memcpy(buffer, "*array*", len_required);
+            memcpy(bptr, "*array*", len_required);
             break;
          case JD_OBJECT:
-            memcpy(buffer, "*object*", len_required);
-            break;
-         case JD_PROPERTY:
-            bptr = buffer;
-            tlen = jd_node_value_length(jnode->firstChild);
-            --tlen;  // don't count or print the '\0'
-            memcpy(bptr, jnode->firstChild->payload, tlen);
-            bptr += tlen;
-            *bptr++ = ':';
-            jd_node_value(jnode->lastChild, bptr, len_required - tlen - 1);
+            memcpy(bptr, "*object*", len_required);
             break;
          default:
             // We shouldn't fall through to here:
