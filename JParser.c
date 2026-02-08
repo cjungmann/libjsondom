@@ -1,8 +1,5 @@
 /** @file JParser.c */
 
-/** Enable usage of dprintf: */
-#define _POSIX_C_SOURCE 200809L
-
 #include <stdio.h>    // dprintf
 #include <stdlib.h>   // malloc/free
 #include <unistd.h>   // open/read/lseek
@@ -84,18 +81,13 @@ bool Object_ReadMember(int fh,
    {
       report_parse_error(pe, fh,
                          "labels must be double-quoted");
-      // if ((*Report_Error)(
-      //        fh,
-      //        "error parsing object member: "
-      //        "labels must be enclosed in double-quotes."))
-         goto early_exit;
+      goto early_exit;
    }
 
    // Read the string that's queued-up:
    ReadStringInit(&rsh_label, first_char);
    if (JReadString(fh, &rsh_label, pe))
    {
-      jd_Node *value_node = NULL;
       bool past_colon = false;
       char chr;
       ssize_t bytes_read;
@@ -109,33 +101,18 @@ bool Object_ReadMember(int fh,
             past_colon = true;
          else if (past_colon)
          {
-            char temp_end_signal = 0;
-            if (JParser(fh, NULL, &value_node, chr, &temp_end_signal, pe))
+            // past_colon means we have the property name,
+            // new get the property value:
+            jd_Node *prop_node = NULL;
+            if (JParser(fh, NULL, &prop_node, chr, end_signal, pe))
             {
-               // We have the label string and value node,
-               // so we can build the property now:
-               jd_Node *prop_node = NULL;
-               if (jd_Node_create(&prop_node, parent, NULL))
-               {
-                  prop_node->type = JD_PROPERTY;
-                  jd_Node *label_node = NULL;
-                  if (jd_Node_create(&label_node, prop_node, NULL))
-                  {
-                     jd_Node_take_string(label_node, StealReadString(&rsh_label));
-                     jd_Node_adopt(value_node, prop_node, NULL);
-
-                     *new_node = prop_node;
-                     retval = true;
-
-                     if (end_signal)
-                        *end_signal = temp_end_signal;
-                  }
-                  else
-                     jd_Node_destroy(&prop_node);
-               }
+               prop_node->name = StealReadString(&rsh_label);
+               jd_Node_adopt(prop_node, parent, NULL);
+               retval = true;
             }
+            // We don't need to clean up the label after a parsing failure
+            // because it will cleaned up after the early_exit label.
 
-            // Success or failure, we break after reading past the colon:
             break;
          }
          else
@@ -143,12 +120,7 @@ bool Object_ReadMember(int fh,
             // A non-colon character after label is an error
             report_parse_error(pe, fh,
                                "colons must follow labels");
-            // if ((*Report_Error)(
-            //        fh,
-            //        "error parsing object member: "
-            //        "A colon is required after a member label."))
-               goto early_exit;
-            break;
+            goto early_exit;
          }
       } // while (bytes_read = read...)
 
