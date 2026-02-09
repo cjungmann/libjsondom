@@ -18,7 +18,6 @@ const char* jd_Node_TypeLabels[] = {
    "integer",
    "float",
    "array",
-   "property",
    "object",
    "INVALID_TYPE"
 };
@@ -308,33 +307,6 @@ bool jd_Node_copy_string(jd_Node *node, const char *str)
 }
 
 /**
- * @brief Discards all subordinate memory and values
- */
-bool jd_Node_make_null_property(jd_Node *node, const char *label)
-{
-   jd_Node_discard_payload(node);
-   if (node->firstChild)
-      jd_Node_destroy(&(node->firstChild));
-   node->type = JD_PROPERTY;
-
-   jd_Node *label_node, *value_node;
-   if (jd_Node_create(&label_node, node, NULL))
-   {
-      if (jd_Node_create(&value_node, node, NULL))
-      {
-         jd_Node_copy_string(label_node, label);
-         jd_Node_set_null(value_node);
-
-         return true;
-      }
-      else
-         jd_Node_destroy(&(node->firstChild));
-   }
-
-   return false;
-}
-
-/**
  * @brief Safely converts an initialized jd_Node of any type to an empty JD_ARRAY jd_Node.
  * @param node   jd_Node to be converted
  * @return true for success, false for failure
@@ -388,9 +360,16 @@ jd_Node_printer jNode_printers[] = {
    jd_Node_print_integer,
    jd_Node_print_float,
    jd_Node_print_array,
-   jd_Node_print_property,
    jd_Node_print_object
 };
+
+void jd_Node_print_prefix(const jd_Node *node, int indent)
+{
+   if (indent>0)
+      printf("\n%*c", indent, ' ');
+   if (node->name)
+      printf("\"%s\": ", node->name);
+}
 
 /**
  * @brief JD_NULL jd_Node printing function for jNode_printers array
@@ -400,10 +379,8 @@ jd_Node_printer jNode_printers[] = {
 void jd_Node_print_null(const jd_Node *node, int indent)
 {
    assert(node && node->type==JD_NULL);
-   if (indent<0)
-      printf("null");
-   else
-      printf("\n%*cnull", indent, ' ');
+   jd_Node_print_prefix(node, indent);
+   printf("null");
 }
 
 /**
@@ -414,10 +391,8 @@ void jd_Node_print_null(const jd_Node *node, int indent)
 void jd_Node_print_true(const jd_Node *node, int indent)
 {
    assert(node && node->type==JD_TRUE);
-   if (indent<0)
-      printf("true");
-   else
-      printf("\n%*ctrue", indent, ' ');
+   jd_Node_print_prefix(node, indent);
+   printf("true");
 }
 
 /**
@@ -428,10 +403,8 @@ void jd_Node_print_true(const jd_Node *node, int indent)
 void jd_Node_print_false(const jd_Node *node, int indent)
 {
    assert(node && node->type==JD_FALSE);
-   if (indent<0)
-      printf("false");
-   else
-      printf("\n%*cfalse", indent, ' ');
+   jd_Node_print_prefix(node, indent);
+   printf("false");
 }
 
 /**
@@ -442,10 +415,8 @@ void jd_Node_print_false(const jd_Node *node, int indent)
 void jd_Node_print_string(const jd_Node *node, int indent)
 {
    assert(node && node->type==JD_STRING);
-   if (indent<0)
-      printf("\"%s\"", (char*)node->payload);
-   else
-      printf("\n%*c\"%s\"", indent, ' ', (char*)node->payload);
+   jd_Node_print_prefix(node, indent);
+   printf("\"%s\"", (char*)node->payload);
 }
 
 /**
@@ -456,10 +427,8 @@ void jd_Node_print_string(const jd_Node *node, int indent)
 void jd_Node_print_integer(const jd_Node *node, int indent)
 {
    assert(node && node->type==JD_INTEGER);
-   if (indent<0)
-      printf("%s", (char*)node->payload);
-   else
-      printf("\n%*c%s", indent, ' ', (char*)node->payload);
+   jd_Node_print_prefix(node, indent);
+   printf("%s", (char*)node->payload);
 }
 
 /**
@@ -470,10 +439,8 @@ void jd_Node_print_integer(const jd_Node *node, int indent)
 void jd_Node_print_float(const jd_Node *node, int indent)
 {
    assert(node && node->type==JD_FLOAT);
-   if (indent<0)
-      printf("%s", (char*)node->payload);
-   else
-      printf("\n%*c%s", indent, ' ', (char*)node->payload);
+   jd_Node_print_prefix(node, indent);
+   printf("%s", (char*)node->payload);
 }
 
 /**
@@ -509,37 +476,6 @@ void jd_Node_print_array(const jd_Node *node, int indent)
       printf("]");
    else
       printf("\n%*c]", indent, ' ');
-}
-
-/**
- * @brief JD_PROPERTY jd_Node printing function for jNode_printers array
- * @param node   jd_Node to be printed
- * @param indent multiple of indents to print before value
- */
-void jd_Node_print_property(const jd_Node *node, int indent)
-{
-   assert(node && node->type==JD_PROPERTY);
-   assert(node->firstChild && node->firstChild->type == JD_STRING);
-   assert(node->firstChild->nextSibling == node->lastChild);
-
-   const char *label = (char*)node->firstChild->payload;
-   jd_Node *value = node->lastChild;
-   bool is_collection = value->type >= JD_ARRAY;
-
-   if (indent < 0)
-   {
-      printf("\"%s\":",  label);
-      (*jNode_printers[value->type])(value, indent);
-   }
-   else
-   {
-      printf("\n%*c\"%s\":", indent, ' ', label);
-      if (is_collection)
-         indent += 4;
-      else
-         indent = -1;   // print value on same line with indent value
-      (*jNode_printers[value->type])(value, indent);
-   }
 }
 
 /**
@@ -579,6 +515,12 @@ void jd_Node_print_object(const jd_Node *node, int indent)
 
 /**
  * @brief Recursive function prints tree to stdout
+ * @param node     node from which printing will begin
+ * @param indent   indent level at current level of recursion.
+ *                 The default value is '0', which does a
+ *                 pretty print.  An indent less than 0
+ *                 will produce a minimized output, with no
+ *                 extra spaces or newlines.
  */
 void jd_Node_serialize(const jd_Node *node, int indent)
 {
@@ -600,35 +542,6 @@ void populate_simple_array(jd_Node *parent)
    jd_Node_copy_string(child, "This is a string");
 }
 
-void populate_simple_object(jd_Node *parent)
-{
-   jd_Node *child;
-
-   jd_Node_create(&child, parent, NULL);
-   jd_Node_make_null_property(child, "one_array");
-   populate_simple_array(child->lastChild);
-
-   jd_Node_create(&child, parent, NULL);
-   jd_Node_make_null_property(child, "two_true");
-   jd_Node_set_true(child->lastChild);
-
-   jd_Node_create(&child, parent, NULL);
-   jd_Node_make_null_property(child, "three_false");
-   jd_Node_set_false(child->lastChild);
-
-   jd_Node_create(&child, parent, NULL);
-   jd_Node_make_null_property(child, "four_string");
-   jd_Node_copy_string(child->lastChild, "String value");
-
-   jd_Node_create(&child, parent, NULL);
-   jd_Node_make_null_property(child, "five_integer");
-   jd_Node_set_integer(child->lastChild, "1000");
-
-   jd_Node_create(&child, parent, NULL);
-   jd_Node_make_null_property(child, "six_float");
-   jd_Node_set_float(child->lastChild, "3.141592653589");
-}
-
 void test_array_of_arrays(void)
 {
    jd_Node *root;
@@ -644,10 +557,6 @@ void test_array_of_arrays(void)
       jd_Node_create(&array, root, NULL);
       jd_Node_make_array(array);
       populate_simple_array(array);
-
-      jd_Node_create(&array, root, NULL);
-      jd_Node_make_object(array);
-      populate_simple_object(array);
 
       jd_Node_create(&array, root, NULL);
       jd_Node_make_array(array);
@@ -675,7 +584,7 @@ int main(int argc, const char **argv)
 /*   gcc -std=c99 -Wall -Werror  \*/
 /*       -ggdb -pedantic         \*/
 /*       -fsanitize=leak,address \*/
-/*       -D${b^^}_MAIN           \*/
+/*       -DJNODE_MAIN            \*/
 /*       -o $b ${b}.c"            */
 /* End:                           */
 
