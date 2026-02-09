@@ -115,7 +115,6 @@ void jd_Node_print_string(const jd_Node *node, int indent);
 void jd_Node_print_integer(const jd_Node *node, int indent);
 void jd_Node_print_float(const jd_Node *node, int indent);
 void jd_Node_print_array(const jd_Node *node, int indent);
-void jd_Node_print_property(const jd_Node *node, int indent);
 void jd_Node_print_object(const jd_Node *node, int indent);
 /** @} */
 
