@@ -11,9 +11,6 @@ typedef enum jd_Type_e {
    JD_INTEGER,      ///< variable long value
    JD_FLOAT,        ///< variable double value
    JD_ARRAY,        ///< collection of value nodes
-   JD_PROPERTY,     /**< child of #JD_OBJECT that contains a #JD_STRING
-                     * and a value node
-                     */
    JD_OBJECT        ///< collection of #JD_PROPERTY nodes
 } jd_Type;
 
