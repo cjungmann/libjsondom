@@ -40,7 +40,7 @@ extern jd_NodeError jn_error;
 /** typedef for destructor function pointer array */
 typedef void (*jd_Node_payload_dtor)(jd_Node *node);
 /** typedef for printer function pointer array */
-typedef void (*jd_Node_printer)(const jd_Node *node, int indent);
+typedef void (*jd_Node_printer)(int fd, const jd_Node *node, int indent);
 
 
 // An item is a member of a collection, array or object
@@ -108,14 +108,14 @@ bool jd_Node_array_insert_element(jd_Node *array, jd_Node *new_element, jd_Node 
  *    appropriate printer functions.
  * @{
  */
-void jd_Node_print_null(const jd_Node *node, int indent);
-void jd_Node_print_true(const jd_Node *node, int indent);
-void jd_Node_print_false(const jd_Node *node, int indent);
-void jd_Node_print_string(const jd_Node *node, int indent);
-void jd_Node_print_integer(const jd_Node *node, int indent);
-void jd_Node_print_float(const jd_Node *node, int indent);
-void jd_Node_print_array(const jd_Node *node, int indent);
-void jd_Node_print_object(const jd_Node *node, int indent);
+void jd_Node_print_null(int fd, const jd_Node *node, int indent);
+void jd_Node_print_true(int fd, const jd_Node *node, int indent);
+void jd_Node_print_false(int fd, const jd_Node *node, int indent);
+void jd_Node_print_string(int fd, const jd_Node *node, int indent);
+void jd_Node_print_integer(int fd, const jd_Node *node, int indent);
+void jd_Node_print_float(int fd, const jd_Node *node, int indent);
+void jd_Node_print_array(int fd, const jd_Node *node, int indent);
+void jd_Node_print_object(int fd, const jd_Node *node, int indent);
 /** @} */
 
 int jd_Node_stringify_null(const jd_Node *node, char *buffer, int bufflen);
@@ -131,7 +131,7 @@ int jd_Node_stringify_property(const jd_Node *node, char *buffer, int bufflen);
  * @defgroup TreePrinter Function to print jd_Node tree to stdout
  * @{
  */
-void jd_Node_serialize(const jd_Node *node, int indent);
+void jd_Node_serialize(int fd, const jd_Node *node, int indent);
 /** @} */
 
 

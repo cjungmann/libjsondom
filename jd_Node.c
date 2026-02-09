@@ -363,12 +363,12 @@ jd_Node_printer jNode_printers[] = {
    jd_Node_print_object
 };
 
-void jd_Node_print_prefix(const jd_Node *node, int indent)
+void jd_Node_print_prefix(int fd, const jd_Node *node, int indent)
 {
    if (indent>0)
-      printf("\n%*c", indent, ' ');
+      dprintf(fd, "\n%*c", indent, ' ');
    if (node->name)
-      printf("\"%s\": ", node->name);
+      dprintf(fd, "\"%s\": ", node->name);
 }
 
 /**
@@ -376,11 +376,11 @@ void jd_Node_print_prefix(const jd_Node *node, int indent)
  * @param node   jd_Node to be printed
  * @param indent multiple of indents to print before value
  */
-void jd_Node_print_null(const jd_Node *node, int indent)
+void jd_Node_print_null(int fd, const jd_Node *node, int indent)
 {
    assert(node && node->type==JD_NULL);
-   jd_Node_print_prefix(node, indent);
-   printf("null");
+   jd_Node_print_prefix(fd, node, indent);
+   dprintf(fd, "null");
 }
 
 /**
@@ -388,11 +388,11 @@ void jd_Node_print_null(const jd_Node *node, int indent)
  * @param node   jd_Node to be printed
  * @param indent multiple of indents to print before value
  */
-void jd_Node_print_true(const jd_Node *node, int indent)
+void jd_Node_print_true(int fd, const jd_Node *node, int indent)
 {
    assert(node && node->type==JD_TRUE);
-   jd_Node_print_prefix(node, indent);
-   printf("true");
+   jd_Node_print_prefix(fd, node, indent);
+   dprintf(fd, "true");
 }
 
 /**
@@ -400,11 +400,11 @@ void jd_Node_print_true(const jd_Node *node, int indent)
  * @param node   jd_Node to be printed
  * @param indent multiple of indents to print before value
  */
-void jd_Node_print_false(const jd_Node *node, int indent)
+void jd_Node_print_false(int fd, const jd_Node *node, int indent)
 {
    assert(node && node->type==JD_FALSE);
-   jd_Node_print_prefix(node, indent);
-   printf("false");
+   jd_Node_print_prefix(fd, node, indent);
+   dprintf(fd, "false");
 }
 
 /**
@@ -412,11 +412,11 @@ void jd_Node_print_false(const jd_Node *node, int indent)
  * @param node   jd_Node to be printed
  * @param indent multiple of indents to print before value
  */
-void jd_Node_print_string(const jd_Node *node, int indent)
+void jd_Node_print_string(int fd, const jd_Node *node, int indent)
 {
    assert(node && node->type==JD_STRING);
-   jd_Node_print_prefix(node, indent);
-   printf("\"%s\"", (char*)node->payload);
+   jd_Node_print_prefix(fd, node, indent);
+   dprintf(fd, "\"%s\"", (char*)node->payload);
 }
 
 /**
@@ -424,11 +424,11 @@ void jd_Node_print_string(const jd_Node *node, int indent)
  * @param node   jd_Node to be printed
  * @param indent multiple of indents to print before value
  */
-void jd_Node_print_integer(const jd_Node *node, int indent)
+void jd_Node_print_integer(int fd, const jd_Node *node, int indent)
 {
    assert(node && node->type==JD_INTEGER);
-   jd_Node_print_prefix(node, indent);
-   printf("%s", (char*)node->payload);
+   jd_Node_print_prefix(fd, node, indent);
+   dprintf(fd, "%s", (char*)node->payload);
 }
 
 /**
@@ -436,11 +436,11 @@ void jd_Node_print_integer(const jd_Node *node, int indent)
  * @param node   jd_Node to be printed
  * @param indent multiple of indents to print before value
  */
-void jd_Node_print_float(const jd_Node *node, int indent)
+void jd_Node_print_float(int fd, const jd_Node *node, int indent)
 {
    assert(node && node->type==JD_FLOAT);
-   jd_Node_print_prefix(node, indent);
-   printf("%s", (char*)node->payload);
+   jd_Node_print_prefix(fd, node, indent);
+   dprintf(fd, "%s", (char*)node->payload);
 }
 
 /**
@@ -449,33 +449,33 @@ void jd_Node_print_float(const jd_Node *node, int indent)
  * @param node   jd_Node to be printed
  * @param indent multiple of indents to print before value
  */
-void jd_Node_print_array(const jd_Node *node, int indent)
+void jd_Node_print_array(int fd, const jd_Node *node, int indent)
 {
    assert(node && node->type==JD_ARRAY);
 
    jd_Node *child;
    int subindent = indent;
    if (indent<0)
-      printf("[");
+      dprintf(fd, "[");
    else
    {
-      printf("\n%*c[", indent, ' ');
+      dprintf(fd, "\n%*c[", indent, ' ');
       subindent += 4;
    }
 
    child = node->firstChild;
    while (child)
    {
-      (*jNode_printers[child->type])(child, subindent);
+      (*jNode_printers[child->type])(fd, child, subindent);
       child = child->nextSibling;
       if (child)
-         printf(",");
+         dprintf(fd, ",");
    }
 
    if (indent<0)
-      printf("]");
+      dprintf(fd, "]");
    else
-      printf("\n%*c]", indent, ' ');
+      dprintf(fd, "\n%*c]", indent, ' ');
 }
 
 /**
@@ -484,33 +484,33 @@ void jd_Node_print_array(const jd_Node *node, int indent)
  * @param node   jd_Node to be printed
  * @param indent multiple of indents to print before value
  */
-void jd_Node_print_object(const jd_Node *node, int indent)
+void jd_Node_print_object(int fd, const jd_Node *node, int indent)
 {
    assert(node && node->type==JD_OBJECT);
 
    jd_Node *child;
    int subindent = indent;
    if (indent<0)
-      printf("{");
+      dprintf(fd, "{");
    else
    {
-      printf("\n%*c{", indent, ' ');
+      dprintf(fd, "\n%*c{", indent, ' ');
       subindent += 4;
    }
 
    child = node->firstChild;
    while (child)
    {
-      (*jNode_printers[child->type])(child, subindent);
+      (*jNode_printers[child->type])(fd, child, subindent);
       child = child->nextSibling;
       if (child)
-         printf(",");
+         dprintf(fd, ",");
    }
 
    if (indent<0)
-      printf("}");
+      dprintf(fd, "}");
    else
-      printf("\n%*c}", indent, ' ');
+      dprintf(fd, "\n%*c}", indent, ' ');
 }
 
 /**
@@ -522,10 +522,10 @@ void jd_Node_print_object(const jd_Node *node, int indent)
  *                 will produce a minimized output, with no
  *                 extra spaces or newlines.
  */
-void jd_Node_serialize(const jd_Node *node, int indent)
+void jd_Node_serialize(int fd, const jd_Node *node, int indent)
 {
-   (*jNode_printers[node->type])(node, indent);
-   printf("\n");
+   (*jNode_printers[node->type])(fd, node, indent);
+   dprintf(fd, "\n");
 }
 
 #ifdef JNODE_MAIN
