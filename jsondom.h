@@ -91,7 +91,7 @@ const void* jd_generic_value(const jd_Node *node);
 int jd_node_value_length(const jd_Node *node);
 int jd_node_value(const jd_Node *node, char *buffer, int bufflen);
 
-void jd_serialize(int jd_out, const jd_Node *node);
+void jd_serialize(int jd_out, const jd_Node *node, int indent);
 
 
 #endif // JSONDOM_H

@@ -263,9 +263,9 @@ EXPORT int jd_node_value(const jd_Node *node, char *buffer, int bufflen)
    return len_required;
 }
 
-EXPORT void jd_serialize(int jd_out, const jd_Node *node)
+EXPORT void jd_serialize(int jd_out, const jd_Node *node, int indent)
 {
-   jd_Node_serialize((jd_Node*)node, 0);
+   jd_Node_serialize(jd_out, node, indent);
 }
 
 
