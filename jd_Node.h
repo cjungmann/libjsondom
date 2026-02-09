@@ -118,14 +118,6 @@ void jd_Node_print_array(int fd, const jd_Node *node, int indent);
 void jd_Node_print_object(int fd, const jd_Node *node, int indent);
 /** @} */
 
-int jd_Node_stringify_null(const jd_Node *node, char *buffer, int bufflen);
-int jd_Node_stringify_true(const jd_Node *node, char *buffer, int bufflen);
-int jd_Node_stringify_false(const jd_Node *node, char *buffer, int bufflen);
-int jd_Node_stringify_string(const jd_Node *node, char *buffer, int bufflen);
-int jd_Node_stringify_integer(const jd_Node *node, char *buffer, int bufflen);
-int jd_Node_stringify_float(const jd_Node *node, char *buffer, int bufflen);
-int jd_Node_stringify_property(const jd_Node *node, char *buffer, int bufflen);
-
 /**
  * @ingroup AllFunctions
  * @defgroup TreePrinter Function to print jd_Node tree to stdout
