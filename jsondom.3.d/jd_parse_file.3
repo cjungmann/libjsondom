@@ -1,0 +1,30 @@
+.so fork.tmac
+.PP
+.pt_jd_parse_file
+.RS 4
+.PP
+Builds a memory tree to reflect the contents of a JSON file.
+Returns
+.B true
+for success and
+.B false
+for failure.
+Upon failure,
+.I pe
+will contain the absolute file location of where the error was
+detected and a description of the error.
+.TP
+.I fd
+is an open file descriptor from which the file contents will be read.
+.TP
+.I node
+is a pointer-to-pointer to which the constructed
+.B jd_Node
+tree will be written as the means by which the result is returned to
+the calling function.
+.TP
+.I pe
+is a simple struct that, upon a parsing error, returns the absolute
+file position at which the error was detected, and a message
+describing the error.
+.RE

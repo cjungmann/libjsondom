@@ -1,0 +1,22 @@
+.so fork.tmac
+.PP
+.pt_jd_destroy
+.RS 4
+.PP
+This function safely frees the memory tree, including the
+.B jd_Node
+instance that is passed to the function.
+.TP
+.I node
+recursively frees the siblings of
+.IR node ,
+then the children.
+When all relatives of
+.I node
+have been freed, the
+.I node
+itself will be freed and the pointer to
+.I node
+will be set to
+.BR NULL.
+.RE

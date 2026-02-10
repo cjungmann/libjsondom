@@ -1,0 +1,20 @@
+.so fork.tmac
+.PP
+.pt_jd_ParseError
+.RS 4
+.PP
+The structure by which
+.B jd_parse_file
+notifies a calling function that an error occurred while parsing a
+given file.
+.TP
+.I char_loc
+is the absolute position in the JSON file of the character that broke
+the syntax rules.  The indicated character often follows the error.
+For example, a missing comma may only be noticed when another string
+begins before a comma separates it from its sibling.
+.TP
+.I message
+is a description of the error.
+.RE
+

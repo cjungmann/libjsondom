@@ -1,0 +1,49 @@
+.so fork.tmac
+.PP
+.pt_jd_Node
+.RS 4
+.TP
+.I parent
+.TQ
+.I nextSibling
+.TQ
+.I firstChild
+.TQ
+.I prevSibling
+.TQ
+.I lastChild
+are pointers to related nodes.
+The first four follow HTML/CSS conventions of organization,
+with children of a node accessed through the first child and
+through the siblings of the first child.
+.IP
+The order of the related nodes copies the order of sides of a CSS page,
+top, right, bottom, and left.
+.IP
+.I lastChild
+is used for appending a new child of a node to avoid having to
+walk through all children to find the last.
+.TP
+.I type
+indicates what type of data to which the
+.I payload
+member points.
+.IP
+See the
+.B TYPES
+section below to find the
+.B jd_Type
+enumeration.
+.TP
+.I payload
+is non-typed pointer meant to be cast to the proper type as
+directed by the
+.I type
+member.
+.TP
+.I name
+points to a
+.B char*
+if a name is needed for the node.  Child nodes of an object
+must have names.
+.RE

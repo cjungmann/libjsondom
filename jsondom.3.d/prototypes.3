@@ -21,16 +21,8 @@
 .   cdef_arg jd_Node *lastChild
 .   cdef_arg jd_Type type
 .   cdef_arg void *payload
+.   cdef_arg char *name
 .   cdef_end_stacked jd_Node
-..
-.de pt_jd_Relation
-.   cdef_start "typedef enum" jd_Relation_e {} ,
-.   cdef_arg JD_PARENT \fR=\fP\ 0
-.   cdef_arg JD_NEXT
-.   cdef_arg JD_FIRST
-.   cdef_arg JD_PREVIOUS
-.   cdef_arg JD_LAST
-.   cdef_end_stacked jd_Relation
 ..
 .de pt_jd_parse_file
 .   cdef_start bool jd_parse_file
@@ -44,28 +36,11 @@
 .   cdef_arg jd_Node **node
 .   cdef_end
 ..
-.de pt_jd_get_relation
-.   cdef_start jd_Node *jd_get_relation
-.   cdef_arg jd_Node *node
-.   cdef_arg jd_Relation relation
-.   cdef_end
-..
-.de pt_jd_node_value_length
-.   cdef_start int jd_node_value_length
-.   cdef_arg "const jd_Node" *node
-.   cdef_end
-..
-.de pt_jd_node_value
-.   cdef_start int jd_node_value
-.   cdef_arg "const jd_Node" *node
-.   cdef_arg char *buffer
-.   cdef_arg int bufflen
-.   cdef_end
-..
 .de pt_jd_serialize
 .   cdef_start void jd_serialize
 .   cdef_arg int fd
 .   cdef_arg "const jd_Node" *node
+.   cdef_arg int indent
 .   cdef_end
 ..
 .de pt_jd_ParseError

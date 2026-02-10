@@ -1,0 +1,28 @@
+.so fork.tmac
+.PP
+.pt_jd_serialize
+.RS 4
+.PP
+This function provides an easy alternative to a custom-developed
+print routine.
+.B jd_serialize
+prints in one of two modes, either fully expanded with each value
+on its own line, or fully minimized, having removed all extra spaces
+between values and elements.
+.TP
+.I fd
+the file descriptor to which the output will be directed.  An example
+would be
+.BR STDOUT_FILENO .
+.TP
+.I node
+The node from which the print will be conducted.  The specified node
+and all its children will be included in the output.
+.TP
+.I indent
+specifies the indent level to start.
+.I indent
+values >=0 will print in pretty-mode.
+If the value is less than
+0, the output will be minimized.
+.RE
