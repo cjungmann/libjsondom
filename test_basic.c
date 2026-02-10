@@ -13,6 +13,9 @@
 
 #define TEST_PATH "json_files/"
 
+const char* DTYPES[] = {
+   "NULL", "TRUE", "FALSE", "STRING", "INTEGER", "FLOAT", "ARRAY", "OBJECT"
+};
 
 bool get_test_list(char **raw, const char*** index)
 {
@@ -168,46 +171,16 @@ bool parse_test_file(const char *filename)
 
 void display_node(const jd_Node *node, int indent)
 {
-   const char *s_type = jd_id_name(node);
-   jd_Type t_type = jd_id_type(node);
+   const char *s_type = DTYPES[node->type];
    printf("%*.*sType '%s' (%d)\n",
           indent, indent, "",
-          s_type, t_type);
+          s_type, node->type);
 }
 
 void test_node_tree(jd_Node *tree)
 {
    printf("Got to the test_node_tree, baby.\n");
    display_node(tree, 4);
-}
-
-/**
- * @brief Called by @ref test_get_relations to display relation and its contents
- */
-void display_relation(jd_Node *node, jd_Relation rel)
-{
-   const char *names[] = {
-      "parent", "nextSibling", "prevSibling", "firstChild", "lastChild", NULL
-   };
-   printf( "For '%s', compare jd_get_relation and matched relation function:\n", names[rel]);
-
-   jd_Node *(*rfunc[])(jd_Node *) = {
-      parent, nextSibling, prevSibling, firstChild, lastChild
-   };
-
-   jd_Node *from_getrel = jd_get_relation(node, rel);
-   jd_Node *from_func = rfunc[rel](node);
-
-   if (from_getrel == from_func)
-      printf("Results matched (%p)!\n", (void*)from_getrel);
-   else
-      printf("Results NOT MATCHED (%p vs %p).\n", (void*)from_getrel, (void*)from_func);
-}
-
-void test_get_relations(jd_Node *tree)
-{
-   for (int i=0; i<=JD_LAST; ++i)
-      display_relation(tree, i);
 }
 
 
@@ -232,7 +205,6 @@ bool test_individual_file(const char *filename)
       if (jd_parse_file(fd, &node, &pe))
       {
          test_node_tree(node);
-         test_get_relations(node);
          jd_destroy(&node);
          retval = true;
       }
