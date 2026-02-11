@@ -167,17 +167,20 @@ void jd_Node_destroy(jd_Node **node)
 {
    if (*node)
    {
-      // The child will destroy siblings, so we won't have to:
+      // Destroy relatives
       if ((*node)->firstChild)
          jd_Node_destroy(&(*node)->firstChild);
-
       if ((*node)->nextSibling)
          jd_Node_destroy(&(*node)->nextSibling);
 
+      // Free any attached data:
       if ((*node)->payload)
          free((void*)(*node)->payload);
       if ((*node)->name)
          free((void*)(*node)->name);
+
+      // Salt the earth: prevent using a freed node:
+      memset(node, -1, sizeof(jd_Node));
 
       free(*node);
       *node = NULL;
