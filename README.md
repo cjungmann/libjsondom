@@ -100,6 +100,7 @@ library.
 - [Model implementation of JSON parser][libjson]
 - [JSON is a Minefield][minefield]
 - [Minefield test data][minefield-tests]
+- [Popular cJSON parser in C][cjson]
 
 [jsondef]:          https://www.json.org/json-en.html
 [ms_dummy_data]:    https://microsoftedge.github.io/Demos/json-dummy-data/
@@ -107,3 +108,4 @@ library.
 [doxygen]:          https://www.doxygen.nl/
 [minefield]:        https://seriot.ch/software/parsing_json.html
 [minefield-tests]:  https://github.com/nst/JSONTestSuite
+[cjson]:            https://github.com/DaveGamble/cJSON
