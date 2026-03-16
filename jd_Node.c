@@ -180,7 +180,7 @@ void jd_Node_destroy(jd_Node **node)
          free((void*)(*node)->name);
 
       // Salt the earth: prevent using a freed node:
-      memset(node, -1, sizeof(jd_Node));
+      memset(*node, -1, sizeof(jd_Node));
 
       free(*node);
       *node = NULL;
