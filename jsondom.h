@@ -49,8 +49,15 @@ typedef struct jd_ParseError_s {
    const char *message;      ///< description of error
 } jd_ParseError;
 
+typedef struct jd_NodeSet {
+   int     count;
+   jd_Node **nodes;
+} jd_NodeSet;
+
 bool jd_parse_file(int fh, jd_Node **new_tree, jd_ParseError *pe);
 void jd_destroy(jd_Node **node);
+
+bool jd_search(jd_NodeSet *ns, const jd_Node *origin, const char *query);
 
 void jd_serialize(int jd_out, const jd_Node *node, int indent);
 

@@ -44,6 +44,10 @@ EXPORT void jd_destroy(jd_Node **node)
    jd_Node_destroy(node);
 }
 
+EXPORT bool js_search(jd_NodeSet *ns, const jd_Node *origin, const char *query)
+{
+   return true;
+}
 
 EXPORT void jd_serialize(int jd_out, const jd_Node *node, int indent)
 {
